@@ -1,0 +1,6 @@
+# The directory I like to build under
+/build
+
+# Dependencies that are downloaded/installed separately
+/thirdparty/cef3/*
+!/thirdparty/cef3/README.txt

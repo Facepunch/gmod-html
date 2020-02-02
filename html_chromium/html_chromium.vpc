@@ -1,0 +1,74 @@
+$Macro SRCDIR "..\.."
+$Macro OUTBINDIR "$SRCDIR\..\game\bin"
+$Include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
+
+// $Include "$SRCDIR\tier0\tier0_exclude.vpc"
+// $Include "$SRCDIR\tier1\tier1_exclude.vpc"
+// $Include "$SRCDIR\vstdlib\vstdlib_exclude.vpc"
+
+$Configuration
+{
+	$General
+	{
+		// Win32: Don't target XP for Chromium
+		$PlatformToolset "v142" [$CHROMIUM && $WIN32]
+	}
+
+	$Compiler
+	{
+		$AdditionalIncludeDirectories "$BASE;$SRCDIR\garrysmod"
+		$AdditionalIncludeDirectories "$BASE;$SRCDIR\thirdparty\win32\CEF"		[$WIN32]
+		$AdditionalIncludeDirectories "$BASE;$SRCDIR\thirdparty\win64\CEF"		[$WIN64]
+		$AdditionalIncludeDirectories "$BASE;$SRCDIR\thirdparty\linux64\CEF"	[$LINUX64]
+		$AdditionalIncludeDirectories "$BASE;$SRCDIR\thirdparty\osx64\CEF"		[$OSX64]
+
+		// Win32: Don't target XP for Chromium
+		$PreprocessorDefinitions "$BASE;WINVER=0x0601;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000" [$WIN32]
+	}
+
+}
+
+$Project "html_chromium"
+{
+	$Folder "Interfaces"
+	{
+		$File "$SRCDIR\garrysmod\html\IHtmlSystem.h"
+		$File "$SRCDIR\garrysmod\html\IHtmlClient.h"
+		$File "$SRCDIR\garrysmod\html\IHtmlClientListener.h"
+		$File "$SRCDIR\garrysmod\html\IHtmlResourceHandler.h"
+		$File "$SRCDIR\garrysmod\html\JSValue.h"
+	}
+	
+	$Folder "Source Files"
+	{
+		$File "ChromiumSystem.cpp"
+		$File "ChromiumClient.cpp"
+		$File "ChromiumBrowser.cpp"
+		$File "ResourceHandler.cpp"
+		$File "HtmlResourceHandler.cpp"
+		$File "JSObjects.cpp"
+	}
+
+	$Folder "Header Files"
+	{
+		$File "cef_start.h"
+		$File "cef_end.h"
+		$File "ChromiumSystem.h"
+		$File "ChromiumClient.h"
+		$File "ChromiumBrowser.h"
+		$File "ResourceHandler.h"
+		$File "HtmlResourceHandler.h"
+		$File "MessageQueue.h"
+		$File "ImageData.h"
+		$File "JSObjects.h"
+	}
+
+	$Folder "Link Libraries"
+	{
+		$LibExternal "$LIBCOMMON\libcef_dll_wrapper"
+
+		// macOS doesn't link against libcef at compile-time
+		$ImpLibExternal "$LIBCOMMON\libcef"	[$WINDOWS]
+		$ImpLibExternal "$LIBCOMMON\cef"	[$LINUX]
+	}
+}
