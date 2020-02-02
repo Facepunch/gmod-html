@@ -58,3 +58,4 @@ Todo
 - Get the example_host into workable condition. It's disabled at the moment
 - Cleanup. Everything is quite messy.
 - macOS. These builds require quite a few unique things so they're not handled by the CMake scripts at all at the moment. It's still technically possible to get the builds working, though.
+- Dynamic loading of the HTML implementation. Atm we just use dylib() or LoadLibrary() in each host which is kind of lame. It'd be nice to simplify it.
