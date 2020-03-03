@@ -5,7 +5,6 @@ if(WIN32)
 		${CEF_PATH}/Release/libcef.dll
 		${CEF_PATH}/Release/libEGL.dll
 		${CEF_PATH}/Release/libGLESv2.dll
-		${CEF_PATH}/Release/natives_blob.bin
 		${CEF_PATH}/Release/snapshot_blob.bin
 		${CEF_PATH}/Release/v8_context_snapshot.bin
 		${CEF_PATH}/Resources/icudtl.dat)
@@ -15,7 +14,6 @@ elseif(UNIX AND NOT APPLE)
 		${CEF_PATH}/Release/libcef.so
 		${CEF_PATH}/Release/libEGL.so
 		${CEF_PATH}/Release/libGLESv2.so
-		${CEF_PATH}/Release/natives_blob.bin
 		${CEF_PATH}/Release/snapshot_blob.bin
 		${CEF_PATH}/Release/v8_context_snapshot.bin
 		${CEF_PATH}/Resources/icudtl.dat)
@@ -31,8 +29,8 @@ set(RESOURCES
 	${CEF_PATH}/Resources/devtools_resources.pak)
 
 install(FILES ${BINARIES} DESTINATION ${GAME_BIN_DIR})
-install(FILES ${RESOURCES} DESTINATION chromium)
-install(DIRECTORY ${CEF_PATH}/Resources/locales DESTINATION chromium)
+install(FILES ${RESOURCES} DESTINATION ${CMAKE_BINARY_DIR}/bin/chromium)
+install(DIRECTORY ${CEF_PATH}/Resources/locales DESTINATION ${CMAKE_BINARY_DIR}/bin/chromium)
 
 # Actual lib
 set(SOURCES

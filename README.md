@@ -7,10 +7,10 @@ To work with this project you will need a build of the Chromium Embedded Framewo
 
 | Platform | URL |
 | -------- | --- |
-| Windows x86 | https://files.facepunch.com/willox/46c89e07-a257-4988-96e8-81e945284469/cef_binary_79.1.31%2Bgfc9ef34%2Bchromium-79.0.3945.117_windows32.tar.bz2 |
-| Windows x64 | https://files.facepunch.com/willox/8750c07c-4888-4a79-8449-a01bd6e851f7/cef_binary_79.1.31%2Bgfc9ef34%2Bchromium-79.0.3945.117_windows64.tar.bz2 |
-| Linux x64 | https://files.facepunch.com/willox/3004a977-b227-4a20-bbfb-e698913d8a71/cef_binary_79.1.31%2Bgfc9ef34%2Bchromium-79.0.3945.117_linux64.tar.bz2 |
-| macOS x64 | https://files.facepunch.com/willox/7fd05979-e9ad-4b94-8d85-0014bacb170c/cef_binary_79.1.35%2Bgfebbb4a%2Bchromium-79.0.3945.130_macosx64.tar.bz2 |
+| Windows x86 | https://files.facepunch.com/willox/7bb55f57-7c70-4140-83d7-2d61d8b57816/cef_binary_80.0.4%2Bg74f7b0c%2Bchromium-80.0.3987.122_windows32.tar.bz2 |
+| Windows x64 | https://files.facepunch.com/willox/14ceed65-8809-4fba-97a7-2d524b6d45ec/cef_binary_80.0.4%2Bg74f7b0c%2Bchromium-80.0.3987.122_windows64.tar.bz2 |
+| Linux x64 | https://files.facepunch.com/willox/dfd5d7fe-2184-40a9-90b0-49f9eef9a9b5/cef_binary_80.0.4%2Bg74f7b0c%2Bchromium-80.0.3987.122_linux64.tar.bz2 |
+| macOS x64 | https://files.facepunch.com/willox/17e19274-4112-4734-ac20-22cd8644bcb4/cef_binary_80.0.4%2Bg74f7b0c%2Bchromium-80.0.3987.122_macosx64.tar.bz2 |
 
 These belong in the `./thirdparty/cef3/` directory (after extraction.) The paths are currently hardcoded into the root `CMakelists.txt` file.
 
