@@ -1,6 +1,5 @@
 # GMod HTML
 This is pretty much just an abstraction layer around The Chromium Embedded Framework (https://bitbucket.org/chromiumembedded/cef)
-Note: None of this works with the current release of GMod. You'll have to wait for the full 64-bit release before using these with a live build of GMod.
 
 ## Chromium Embedded Framework Binary Distribution
 To work with this project you will need a build of the Chromium Embedded Framework. You can download the builds used by Garry's Mod here if you don't want to compile your own:
