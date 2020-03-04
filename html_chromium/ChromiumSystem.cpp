@@ -52,6 +52,9 @@ public:
 
 		// Auto-play media
 		command_line->AppendSwitchWithValue( "autoplay-policy", "no-user-gesture-required" );
+
+		// Chromium 80 removed this but only sometimes.
+		command_line->AppendSwitchWithValue( "enable-blink-features", "HTMLImports" );
 	}
 
 	void OnRegisterCustomSchemes( CefRawPtr<CefSchemeRegistrar> registrar ) override
