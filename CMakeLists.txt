@@ -89,7 +89,7 @@ else()
 endif()
 
 # Our projects
-add_subdirectory(example_host)
+#add_subdirectory(example_host)
 add_subdirectory(html)
 add_subdirectory(html_stub)
 add_subdirectory(html_chromium)
