@@ -69,9 +69,9 @@ static bool V8ValuesToCefList( CefRefPtr<CefListValue>& outList, const CefV8Valu
 {
 	outList->SetSize( inList.size() );
 
-    size_t index = 0;
-    for ( const auto& x : inList )
-    {
+	size_t index = 0;
+	for ( const auto& x : inList )
+	{
 		auto newValue = CefValue::Create();
 
 		if ( !V8ValueToCefValue( newValue, x ) )
@@ -79,9 +79,9 @@ static bool V8ValuesToCefList( CefRefPtr<CefListValue>& outList, const CefV8Valu
 
 		outList->SetValue( index, newValue );
 		index++;
-    }
+	}
 
-    return true;
+	return true;
 }
 
 static bool CefValueToV8Value( CefRefPtr<CefV8Value>& outValue, const CefRefPtr<CefValue>& inValue, int depth = 0 )
@@ -168,45 +168,45 @@ static bool CefListToV8Values( CefV8ValueList& outList, const CefRefPtr<CefListV
 //
 void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, CefRefPtr<CefCommandLine> command_line )
 {
-    command_line->AppendSwitch( "disable-gpu" );
-    command_line->AppendSwitch( "disable-gpu-compositing" );
-    command_line->AppendSwitch( "disable-smooth-scrolling" );
+	command_line->AppendSwitch( "disable-gpu" );
+	command_line->AppendSwitch( "disable-gpu-compositing" );
+	command_line->AppendSwitch( "disable-smooth-scrolling" );
 #ifdef _WIN32
-    command_line->AppendSwitch( "enable-begin-frame-scheduling" );
+	command_line->AppendSwitch( "enable-begin-frame-scheduling" );
 #endif
-    command_line->AppendSwitch( "enable-system-flash" );
+	command_line->AppendSwitch( "enable-system-flash" );
 
-    // This can interfere with posix signals and break Breakpad
+	// This can interfere with posix signals and break Breakpad
 #ifdef POSIX
-    command_line->AppendSwitch( "disable-in-process-stack-traces" );
+	command_line->AppendSwitch( "disable-in-process-stack-traces" );
 #endif
 
 #ifdef OSX
-        command_line->AppendSwitch( "use-mock-keychain" );
+		command_line->AppendSwitch( "use-mock-keychain" );
 #endif
 
-    // https://bitbucket.org/chromiumembedded/cef/issues/2400
-    command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents" );
+	// https://bitbucket.org/chromiumembedded/cef/issues/2400
+	command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents" );
 
-    // Auto-play media
-    command_line->AppendSwitchWithValue( "autoplay-policy", "no-user-gesture-required" );
+	// Auto-play media
+	command_line->AppendSwitchWithValue( "autoplay-policy", "no-user-gesture-required" );
 
-    // Chromium 80 removed this but only sometimes.
-    command_line->AppendSwitchWithValue( "enable-blink-features", "HTMLImports" );
+	// Chromium 80 removed this but only sometimes.
+	command_line->AppendSwitchWithValue( "enable-blink-features", "HTMLImports" );
 
-    // Disable site isolation until we implement passing registered Lua functions between processes
-    command_line->AppendSwitch( "disable-site-isolation-trials" );
+	// Disable site isolation until we implement passing registered Lua functions between processes
+	command_line->AppendSwitch( "disable-site-isolation-trials" );
 }
 
 void ChromiumApp::OnRegisterCustomSchemes( CefRawPtr<CefSchemeRegistrar> registrar )
 {
-    // TODO: are these bools what we want them to be?
-    registrar->AddCustomScheme( "asset", CEF_SCHEME_OPTION_STANDARD | CEF_SCHEME_OPTION_CSP_BYPASSING );
+	// TODO: are these bools what we want them to be?
+	registrar->AddCustomScheme( "asset", CEF_SCHEME_OPTION_STANDARD | CEF_SCHEME_OPTION_CSP_BYPASSING );
 }
 
 CefRefPtr<CefRenderProcessHandler> ChromiumApp::GetRenderProcessHandler()
 {
-    return this;
+	return this;
 }
 
 //
@@ -214,27 +214,27 @@ CefRefPtr<CefRenderProcessHandler> ChromiumApp::GetRenderProcessHandler()
 //
 void ChromiumApp::OnContextCreated( CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context )
 {
-    //
-    // CEF3 doesn't support implementing the print dialog, so we've gotta just remove window.print.
-    //
-    context->Enter();
-    {
-        context->GetGlobal()->DeleteValue( "print" );
+	//
+	// CEF3 doesn't support implementing the print dialog, so we've gotta just remove window.print.
+	//
+	context->Enter();
+	{
+		context->GetGlobal()->DeleteValue( "print" );
 
-        // Removing WebSQL for now - we can add it back after CEF3 has been updated
-        context->GetGlobal()->DeleteValue( "openDatabase" );
+		// Removing WebSQL for now - we can add it back after CEF3 has been updated
+		context->GetGlobal()->DeleteValue( "openDatabase" );
 
-    }
-    context->Exit();
+	}
+	context->Exit();
 
-    // If this is a web worker, we want nothing to do with it
-    if ( !browser )
-        return;
-    
-    for ( auto& pair : m_RegisteredFunctions )
-    {
-        RegisterFunctionInFrame( frame, pair.first, pair.second );
-    }
+	// If this is a web worker, we want nothing to do with it
+	if ( !browser )
+		return;
+	
+	for ( auto& pair : m_RegisteredFunctions )
+	{
+		RegisterFunctionInFrame( frame, pair.first, pair.second );
+	}
 }
 
 void ChromiumApp::OnContextReleased( CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context )
@@ -244,26 +244,26 @@ void ChromiumApp::OnContextReleased( CefRefPtr<CefBrowser> browser, CefRefPtr<Ce
 
 bool ChromiumApp::OnProcessMessageReceived( CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefProcessId source_process, CefRefPtr<CefProcessMessage> message )
 {
-    auto name = message->GetName();
-    auto args = message->GetArgumentList();
+	auto name = message->GetName();
+	auto args = message->GetArgumentList();
 
-    if ( name == "RegisterFunction" )
-    {
-        RegisterFunction( browser, args );
-        return true;
-    }
+	if ( name == "RegisterFunction" )
+	{
+		RegisterFunction( browser, args );
+		return true;
+	}
 
-    if ( name == "ExecuteCallback" )
-    {
-        ExecuteCallback( browser, args );
-        return true;
-    }
+	if ( name == "ExecuteCallback" )
+	{
+		ExecuteCallback( browser, args );
+		return true;
+	}
 
-    if ( name == "ForgetCallback" )
-    {
-        ForgetCallback( browser, args );
-        return true;
-    }
+	if ( name == "ForgetCallback" )
+	{
+		ForgetCallback( browser, args );
+		return true;
+	}
 
 	if ( name == "ExecuteJavaScript" )
 	{
@@ -271,7 +271,7 @@ bool ChromiumApp::OnProcessMessageReceived( CefRefPtr<CefBrowser> browser, CefRe
 		return true;
 	}
 
-    return false;
+	return false;
 }
 
 //
@@ -279,34 +279,34 @@ bool ChromiumApp::OnProcessMessageReceived( CefRefPtr<CefBrowser> browser, CefRe
 //
 bool ChromiumApp::Execute( const CefString& name, CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval, CefString& exception )
 {
-    auto context = CefV8Context::GetCurrentContext();
-    auto browser = context->GetBrowser();
+	auto context = CefV8Context::GetCurrentContext();
+	auto browser = context->GetBrowser();
 
-    if ( !browser )
-    {
-        // This could happen inside of a web worker (but our functions shouldn't be registered there)
-        exception = "CefV8Context::GetBrowser == nullptr";
-        return true;
-    }
+	if ( !browser )
+	{
+		// This could happen inside of a web worker (but our functions shouldn't be registered there)
+		exception = "CefV8Context::GetBrowser == nullptr";
+		return true;
+	}
 
-    //
-    // We need to rip the objName/funcName out of this function's name
-    //
-    std::string objName, funcName;
-    {
-        std::string fullName = name.ToString();
-        size_t delimPos = fullName.find( '#' );
+	//
+	// We need to rip the objName/funcName out of this function's name
+	//
+	std::string objName, funcName;
+	{
+		std::string fullName = name.ToString();
+		size_t delimPos = fullName.find( '#' );
 
-        if ( delimPos == std::string::npos )
-        {
-            // Shouldn't happen
-            exception = "ChromiumApp::Execute couldn't parse this function's name";
-            return true;
-        }
+		if ( delimPos == std::string::npos )
+		{
+			// Shouldn't happen
+			exception = "ChromiumApp::Execute couldn't parse this function's name";
+			return true;
+		}
 
-        objName = fullName.substr( 0, delimPos );
-        funcName = fullName.substr( delimPos + 1 );
-    }
+		objName = fullName.substr( 0, delimPos );
+		funcName = fullName.substr( delimPos + 1 );
+	}
 
 	auto argsList = CefListValue::Create();
 	if ( !V8ValuesToCefList( argsList, arguments ) )
@@ -315,98 +315,98 @@ bool ChromiumApp::Execute( const CefString& name, CefRefPtr<CefV8Value> object, 
 		return true;
 	}
 
-    CefRefPtr<CefV8Value> callback;
+	CefRefPtr<CefV8Value> callback;
 
-    auto message = CefProcessMessage::Create( "ExecuteFunction" );
-    auto args = message->GetArgumentList();
+	auto message = CefProcessMessage::Create( "ExecuteFunction" );
+	auto args = message->GetArgumentList();
 
-    args->SetString( 0, objName );
-    args->SetString( 1, funcName );
+	args->SetString( 0, objName );
+	args->SetString( 1, funcName );
 
-    // No callback = easy mode
-    if ( arguments.empty() || !arguments.back()->IsFunction() )
-    {
-        args->SetInt( 2, -1 ); // Invalid callback id
-        args->SetList( 3, argsList );
-    }
-    else
-    {
-        // Now register a callback index that Lua will send back to us later
-        int callbackId = CreateCallback( context, arguments.back() );
+	// No callback = easy mode
+	if ( arguments.empty() || !arguments.back()->IsFunction() )
+	{
+		args->SetInt( 2, -1 ); // Invalid callback id
+		args->SetList( 3, argsList );
+	}
+	else
+	{
+		// Now register a callback index that Lua will send back to us later
+		int callbackId = CreateCallback( context, arguments.back() );
 
-        // We pass argsList to Lua, so pop the callback off of it
+		// We pass argsList to Lua, so pop the callback off of it
 		argsList->Remove( argsList->GetSize() - 1 );
 
-        args->SetInt( 2, callbackId );
-        args->SetList( 3, argsList );
-    }
+		args->SetInt( 2, callbackId );
+		args->SetList( 3, argsList );
+	}
 
-    browser->GetMainFrame()->SendProcessMessage( PID_BROWSER, message );
-    return true;
+	browser->GetMainFrame()->SendProcessMessage( PID_BROWSER, message );
+	return true;
 }
 
 //
 
 int ChromiumApp::CreateCallback( CefRefPtr<CefV8Context> context, CefRefPtr<CefV8Value> func )
 {
-    if ( m_Callbacks.find( m_NextCallbackId ) != m_Callbacks.end() )
-    {
-        // We're overlapping? Probably shouldn't happen
-        return -1;
-    }
+	if ( m_Callbacks.find( m_NextCallbackId ) != m_Callbacks.end() )
+	{
+		// We're overlapping? Probably shouldn't happen
+		return -1;
+	}
 
-    int callbackId = m_NextCallbackId;
-    Callback cb;
-    cb.Context = context;
-    cb.Function = func;
+	int callbackId = m_NextCallbackId;
+	Callback cb;
+	cb.Context = context;
+	cb.Function = func;
 
-    m_Callbacks.emplace( callbackId, cb );
+	m_Callbacks.emplace( callbackId, cb );
 
-    m_NextCallbackId++;
-    if ( m_NextCallbackId >= 16384 )
-        m_NextCallbackId = 0;
+	m_NextCallbackId++;
+	if ( m_NextCallbackId >= 16384 )
+		m_NextCallbackId = 0;
 
-    return callbackId;
+	return callbackId;
 }
 
 void ChromiumApp::RegisterFunctionInFrame( CefRefPtr<CefFrame> frame, const CefString& objName, const CefString& funcName )
 {
-    if ( !frame )
-        return;
+	if ( !frame )
+		return;
 
-    auto context = frame->GetV8Context();
+	auto context = frame->GetV8Context();
 
-    if ( !context )
-        return;
+	if ( !context )
+		return;
 
-    //
-    // We can only associate one string with a function in CEF. So we'll use "{objName}#{funcName}".
-    //
-    CefString fullName;
-    {
-        std::stringstream ss;
-        ss << objName.ToString();
-        ss << '#';
-        ss << funcName.ToString();
-        fullName = CefString( ss.str() );
-    }
+	//
+	// We can only associate one string with a function in CEF. So we'll use "{objName}#{funcName}".
+	//
+	CefString fullName;
+	{
+		std::stringstream ss;
+		ss << objName.ToString();
+		ss << '#';
+		ss << funcName.ToString();
+		fullName = CefString( ss.str() );
+	}
 
-    context->Enter();
-    {
-        auto window = context->GetGlobal();
-        auto obj = window->GetValue( objName );
+	context->Enter();
+	{
+		auto window = context->GetGlobal();
+		auto obj = window->GetValue( objName );
 
-        // If our object doesn't exist, create it
-        if ( !obj || !obj->IsObject() )
-        {
-            obj = CefV8Value::CreateObject( nullptr, nullptr );
-            window->SetValue( objName, obj, V8_PROPERTY_ATTRIBUTE_NONE );
-        }
+		// If our object doesn't exist, create it
+		if ( !obj || !obj->IsObject() )
+		{
+			obj = CefV8Value::CreateObject( nullptr, nullptr );
+			window->SetValue( objName, obj, V8_PROPERTY_ATTRIBUTE_NONE );
+		}
 
-        auto func = CefV8Value::CreateFunction( fullName, this );
-        obj->SetValue( funcName, func, V8_PROPERTY_ATTRIBUTE_NONE );
-    }
-    context->Exit();
+		auto func = CefV8Value::CreateFunction( fullName, this );
+		obj->SetValue( funcName, func, V8_PROPERTY_ATTRIBUTE_NONE );
+	}
+	context->Exit();
 }
 
 void ChromiumApp::ExecuteJavaScript( CefRefPtr<CefBrowser> browser, CefRefPtr<CefListValue> args )
@@ -435,53 +435,53 @@ void ChromiumApp::ExecuteJavaScript( CefRefPtr<CefBrowser> browser, CefRefPtr<Ce
 
 void ChromiumApp::RegisterFunction( CefRefPtr<CefBrowser> browser, CefRefPtr<CefListValue> args )
 {
-    CefString objName = args->GetString( 0 );
-    CefString funcName = args->GetString( 1 );
+	CefString objName = args->GetString( 0 );
+	CefString funcName = args->GetString( 1 );
 
-    // Register this function in any frames that already exist
-    {
-        std::vector<int64> frames;
-        browser->GetFrameIdentifiers( frames );
+	// Register this function in any frames that already exist
+	{
+		std::vector<int64> frames;
+		browser->GetFrameIdentifiers( frames );
 
-        for ( auto frameId : frames )
-        {
-            RegisterFunctionInFrame( browser->GetFrame( frameId ), objName, funcName );
-        }
-    }
+		for ( auto frameId : frames )
+		{
+			RegisterFunctionInFrame( browser->GetFrame( frameId ), objName, funcName );
+		}
+	}
 
-    m_RegisteredFunctions.emplace_back( std::make_pair( objName, funcName ) );
+	m_RegisteredFunctions.emplace_back( std::make_pair( objName, funcName ) );
 }
 
 void ChromiumApp::ExecuteCallback( CefRefPtr<CefBrowser> browser, CefRefPtr<CefListValue> args )
 {
-    int callbackId = args->GetInt( 0 );
-    auto it = m_Callbacks.find( callbackId );
-    if ( it == m_Callbacks.end() )
-        return;
+	int callbackId = args->GetInt( 0 );
+	auto it = m_Callbacks.find( callbackId );
+	if ( it == m_Callbacks.end() )
+		return;
 
-    auto context = it->second.Context;
-    auto func = it->second.Function;
+	auto context = it->second.Context;
+	auto func = it->second.Function;
 
-    m_Callbacks.erase( it );
+	m_Callbacks.erase( it );
 
-    // Context has been destroyed for some reason
-    if ( !context->IsValid() )
-        return;
+	// Context has been destroyed for some reason
+	if ( !context->IsValid() )
+		return;
 
 	auto argList = args->GetList( 1 );
 
-    context->Enter();
-    {
+	context->Enter();
+	{
 		CefV8ValueList arguments;
 		if ( CefListToV8Values( arguments, argList ) )
 		{
 			func->ExecuteFunction( nullptr, arguments );
-		}        
-    }
-    context->Exit();
+		}		
+	}
+	context->Exit();
 }
 
 void ChromiumApp::ForgetCallback( CefRefPtr<CefBrowser> browser, CefRefPtr<CefListValue> args )
 {
-    m_Callbacks.erase( args->GetInt( 0 ) );
+	m_Callbacks.erase( args->GetInt( 0 ) );
 }

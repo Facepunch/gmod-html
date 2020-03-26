@@ -275,7 +275,7 @@ IHtmlClient* ChromiumSystem::CreateClient( IHtmlClientListener* listener )
 	browserSettings.javascript_close_windows = STATE_DISABLED;
 	browserSettings.universal_access_from_file_urls = STATE_DISABLED;
 	browserSettings.file_access_from_file_urls = STATE_DISABLED;
-	browserSettings.webgl = STATE_DISABLED;
+	//browserSettings.webgl = STATE_DISABLED;
 
 	CefRefPtr<ChromiumBrowser> cefClient( new ChromiumBrowser );
 
