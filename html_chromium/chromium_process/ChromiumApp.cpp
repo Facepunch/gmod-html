@@ -186,7 +186,7 @@ void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, 
 #endif
 
 	// https://bitbucket.org/chromiumembedded/cef/issues/2400
-	command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents" );
+	command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents,HardwareMediaKeyHandling" );
 
 	// Auto-play media
 	command_line->AppendSwitchWithValue( "autoplay-policy", "no-user-gesture-required" );

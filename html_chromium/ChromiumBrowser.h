@@ -54,7 +54,7 @@ public:
 
 public:
 	//
-	// CefClient interface 
+	// CefClient interface
 	//
 	CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override { return this; }
 	CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
@@ -85,9 +85,9 @@ public:
 		CefRefPtr<CefDictionaryValue>&,
 		bool* ) override;
 
-//
-// CefLoadHandler interface
-//
+	//
+	// CefLoadHandler interface
+	//
 	void OnLoadStart( CefRefPtr<CefBrowser>, CefRefPtr<CefFrame> frame, CefLoadHandler::TransitionType ) override;
 	void OnLoadEnd( CefRefPtr<CefBrowser>, CefRefPtr<CefFrame> frame, int httpStatusCode ) override;
 	void OnLoadError( CefRefPtr<CefBrowser>, CefRefPtr<CefFrame> frame, CefLoadHandler::ErrorCode errorCode, const CefString& errorText, const CefString& failedURL ) override;
@@ -127,9 +127,9 @@ public:
 		bool,
 		bool ) override;
 
-//
-// CefResourceRequestHandler interface
-//
+	//
+	// CefResourceRequestHandler interface
+	//
 	ReturnValue OnBeforeResourceLoad( CefRefPtr<CefBrowser>,
 		CefRefPtr<CefFrame>,
 		CefRefPtr<CefRequest> request,
@@ -140,17 +140,17 @@ public:
 		CefRefPtr<CefRequest>,
 		bool& allow_os_execution ) override;
 
-//
-// CefContextMenuHandler interface
-//
+	//
+	// CefContextMenuHandler interface
+	//
 	void OnBeforeContextMenu( CefRefPtr<CefBrowser>,
 		CefRefPtr<CefFrame>,
 		CefRefPtr<CefContextMenuParams>,
 		CefRefPtr<CefMenuModel> model ) override;
 
-//
-// CefDialogHandler interface
-//
+	//
+	// CefDialogHandler interface
+	//
 	bool OnFileDialog( CefRefPtr<CefBrowser>,
 		FileDialogMode,
 		const CefString&,
@@ -159,9 +159,9 @@ public:
 		int,
 		CefRefPtr<CefFileDialogCallback> callback ) override;
 
-//
-// CefJSDialogHandler
-//
+	//
+	// CefJSDialogHandler
+	//
 	bool OnJSDialog( CefRefPtr<CefBrowser>,
 		const CefString&,
 		JSDialogType,

@@ -21,8 +21,21 @@
 namespace fs = std::experimental::filesystem;
 #endif
 
+class EmptyV8Handler : public CefV8Handler {
+public:
+	EmptyV8Handler() {}
+
+	virtual bool Execute( const CefString& name, CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval, CefString& exception ) override
+	{
+		return true;
+	}
+
+	IMPLEMENT_REFCOUNTING(EmptyV8Handler);
+};
+
 class ChromiumApp
 	: public CefApp
+	, public CefRenderProcessHandler
 {
 public:
 	//
@@ -48,7 +61,7 @@ public:
 #endif
 
 		// https://bitbucket.org/chromiumembedded/cef/issues/2400
-		command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents" );
+		command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents,HardwareMediaKeyHandling" );
 
 		// Auto-play media
 		command_line->AppendSwitchWithValue( "autoplay-policy", "no-user-gesture-required" );
@@ -66,6 +79,37 @@ public:
 		registrar->AddCustomScheme( "asset", CEF_SCHEME_OPTION_STANDARD | CEF_SCHEME_OPTION_CSP_BYPASSING );
 	}
 
+	//
+	// CefRenderProcessHandler: This implements a Stub for Notifications, allowing Netflix to work
+	//
+	// TODO: Figure out why neither GetRenderProcessHandler nor OnContextCreated is being called (or is it and LOG just isn't working?)
+	/*
+	CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() override
+	{
+		LOG(ERROR) << "GetRenderProcessHandler";
+		return this;
+	}
+
+	void OnContextCreated( CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context ) override
+	{
+		LOG(ERROR) << "OnContextCreated";
+
+		CefRefPtr<CefV8Value> object = context->GetGlobal();
+
+		CefRefPtr<CefV8Handler> emptyFunc = new EmptyV8Handler();
+
+		CefRefPtr<CefV8Value> notificationFunc = CefV8Value::CreateFunction("Notification", emptyFunc);
+
+		object->SetValue("Notification", notificationFunc, V8_PROPERTY_ATTRIBUTE_NONE);
+
+		std::string notificationStubExtension =
+			"window.Notification = function() {};"
+			"window.Notification.requestPermission = function() { return new Promise(function(resolve, reject) { resolve('denied'); }) };"
+			"window.Notification.permission = 'denied';";
+
+		CefRegisterExtension("solsticegamestudios/notificationStub", notificationStubExtension, NULL);
+	}
+	*/
 private:
 	IMPLEMENT_REFCOUNTING( ChromiumApp );
 };
@@ -108,7 +152,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	settings.no_sandbox = false;
 #endif
 	settings.command_line_args_disabled = true;
-	settings.log_severity = LOGSEVERITY_VERBOSE;
+	settings.log_severity = LOGSEVERITY_DEFAULT;
 
 #ifdef _WIN32
 	// Chromium will be sad if we don't resolve any NTFS junctions for it
@@ -162,7 +206,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 		chromiumDir = targetPath.string();
 	}
 
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Windows NT; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36 GMod/13" );
+	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Windows NT; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36 GMod/13" );
 
 	// GMOD: GO - We use the same resources with 32-bit and 64-bit builds, so always use the 32-bit bin path for them
 	CefString( &settings.resources_dir_path ).FromString( chromiumDir );
@@ -170,7 +214,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	settings.multi_threaded_message_loop = true;
 #elif LINUX
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Linux; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36 GMod/13" );
+	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Linux; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36 GMod/13" );
 
 #if defined(__x86_64__) || defined(_WIN64)
 	CefString( &settings.browser_subprocess_path ).FromString( strBaseDir + "/bin/linux64/chromium_process" );
@@ -184,7 +228,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	settings.multi_threaded_message_loop = true;
 #elif OSX
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Macintosh; Intel Mac OS X; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36 GMod/13" );
+	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Macintosh; Intel Mac OS X; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36 GMod/13" );
 #else
 #error
 #endif
