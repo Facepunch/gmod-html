@@ -684,7 +684,7 @@ void ChromiumBrowser::OnPopupSize( CefRefPtr<CefBrowser>, const CefRect& rect )
 }
 
 void ChromiumBrowser::OnPaint( CefRefPtr<CefBrowser>, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, const void* buffer, int width, int height )
-{
+{	
 	//
 	// We blit the popup straight on to the main image. That means gmod won't need to use multiple textures (+1)
 	//
@@ -720,6 +720,15 @@ void ChromiumBrowser::OnPaint( CefRefPtr<CefBrowser>, CefRenderHandler::PaintEle
 			m_ImageData.Unlock();
 			return;
 	}
+}
+
+void ChromiumBrowser::OnAcceleratedPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, void* shared_handle)
+{
+	// TODO: Implement once fixed for OSR on Viz
+	// TODO: See ChromiumSystem::CreateClient
+	// https://bitbucket.org/chromiumembedded/cef/pull-requests/285/reimplement-shared-texture-support-for-viz
+
+	LOG(ERROR) << "ChromiumBrowser::OnAcceleratedPaint";
 }
 
 //

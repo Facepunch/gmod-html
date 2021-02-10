@@ -107,6 +107,7 @@ public:
 	void OnPopupShow( CefRefPtr<CefBrowser>, bool show ) override;
 	void OnPopupSize( CefRefPtr<CefBrowser>, const CefRect& rect ) override;
 	void OnPaint( CefRefPtr<CefBrowser>, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, const void* buffer, int width, int height ) override;
+	void OnAcceleratedPaint( CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, void* shared_handle ) override;
 
 	//
 	// CefRequestHandler interface
