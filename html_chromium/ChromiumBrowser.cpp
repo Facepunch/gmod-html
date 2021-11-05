@@ -684,7 +684,7 @@ void ChromiumBrowser::OnPopupSize( CefRefPtr<CefBrowser>, const CefRect& rect )
 }
 
 void ChromiumBrowser::OnPaint( CefRefPtr<CefBrowser>, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, const void* buffer, int width, int height )
-{	
+{
 	//
 	// We blit the popup straight on to the main image. That means gmod won't need to use multiple textures (+1)
 	//

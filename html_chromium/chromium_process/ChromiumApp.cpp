@@ -476,7 +476,7 @@ void ChromiumApp::ExecuteCallback( CefRefPtr<CefBrowser> browser, CefRefPtr<CefL
 		if ( CefListToV8Values( arguments, argList ) )
 		{
 			func->ExecuteFunction( nullptr, arguments );
-		}		
+		}
 	}
 	context->Exit();
 }

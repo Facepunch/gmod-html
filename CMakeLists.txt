@@ -6,7 +6,7 @@ else()
 	cmake_minimum_required(VERSION 2.8.7)
 endif()
 
-project(gmod-html)
+project(gmod-html LANGUAGES CXX)
 
 # We can only do release builds
 set(CMAKE_CONFIGURATION_TYPES Release Debug)
@@ -85,11 +85,12 @@ add_library(cef_sandbox STATIC IMPORTED)
 if(WIN32)
 	set_target_properties(cef_sandbox PROPERTIES IMPORTED_LOCATION ${CEF_PATH}/Release/cef_sandbox.lib)
 else()
-	#message(FATAL_ERROR "No cef_sandbox library set")
+	message(FATAL_ERROR "No cef_sandbox library set")
 endif()
 
 # Our projects
-#add_subdirectory(example_host)
+add_subdirectory(example_host)
+add_subdirectory(gmod_launcher)
 add_subdirectory(html)
 add_subdirectory(html_stub)
 add_subdirectory(html_chromium)
