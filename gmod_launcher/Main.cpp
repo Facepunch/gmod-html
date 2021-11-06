@@ -40,9 +40,9 @@ int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	}
 #endif
 
-	std::string env{std::getenv("PATH")};
-	env += ";D:\\Steam\\steamapps\\common\\GarrysMod\\bin\\win64";
-	SetEnvironmentVariable("PATH", env.c_str());
+	//std::string env{std::getenv("PATH")};
+	//env += ";D:\\Program Files (x86)\\Steam\\steamapps\\common\\GarrysMod\\bin\\win64";
+	//SetEnvironmentVariable("PATH", env.c_str());
 
 	HMODULE hLauncher = LoadLibraryA("launcher.dll");
 	void* mainFn = static_cast<void*>(GetProcAddress(hLauncher, "LauncherMain"));

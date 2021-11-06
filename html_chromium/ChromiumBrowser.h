@@ -98,11 +98,11 @@ public:
 	void OnAddressChange( CefRefPtr<CefBrowser>, CefRefPtr<CefFrame> frame, const CefString& url ) override;
 	bool OnConsoleMessage( CefRefPtr<CefBrowser>, cef_log_severity_t level, const CefString& message, const CefString& source, int line ) override;
 	void OnTitleChange( CefRefPtr<CefBrowser>, const CefString& title ) override;
+	bool OnCursorChange( CefRefPtr<CefBrowser> browser, CefCursorHandle, cef_cursor_type_t chromeCursor, const CefCursorInfo& ) override;
 
 	//
 	// CefRenderHandler interface
 	//
-	void OnCursorChange( CefRefPtr<CefBrowser>, CefCursorHandle, CefRenderHandler::CursorType chromeCursor, const CefCursorInfo& ) override;
 	void GetViewRect( CefRefPtr<CefBrowser>, CefRect& rect ) override;
 	void OnPopupShow( CefRefPtr<CefBrowser>, bool show ) override;
 	void OnPopupSize( CefRefPtr<CefBrowser>, const CefRect& rect ) override;
@@ -134,7 +134,7 @@ public:
 	ReturnValue OnBeforeResourceLoad( CefRefPtr<CefBrowser>,
 		CefRefPtr<CefFrame>,
 		CefRefPtr<CefRequest> request,
-		CefRefPtr<CefRequestCallback> ) override;
+		CefRefPtr<CefCallback> ) override;
 
 	void OnProtocolExecution( CefRefPtr<CefBrowser>,
 		CefRefPtr<CefFrame>,

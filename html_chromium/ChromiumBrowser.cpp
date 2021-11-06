@@ -255,7 +255,7 @@ void ChromiumBrowser::SetSize( int wide, int tall )
 
 void ChromiumBrowser::SetFocused( bool hasFocus )
 {
-	m_BrowserHost->SendFocusEvent( hasFocus );
+	m_BrowserHost->SetFocus( hasFocus );
 }
 
 void ChromiumBrowser::SendKeyEvent( IHtmlClient::KeyEvent keyEvent )
@@ -566,10 +566,7 @@ void ChromiumBrowser::OnTitleChange( CefRefPtr<CefBrowser>, const CefString& tit
 	QueueMessage( std::move( msg ) );
 }
 
-//
-// CefRenderHandler interface
-//
-void ChromiumBrowser::OnCursorChange( CefRefPtr<CefBrowser>, CefCursorHandle, CefRenderHandler::CursorType chromeCursor, const CefCursorInfo& )
+bool ChromiumBrowser::OnCursorChange( CefRefPtr<CefBrowser> browser, CefCursorHandle, cef_cursor_type_t chromeCursor, const CefCursorInfo& )
 {
 	using GModCursorType = IHtmlClientListener::CursorType;
 	GModCursorType gmodCursor;
@@ -645,9 +642,13 @@ void ChromiumBrowser::OnCursorChange( CefRefPtr<CefBrowser>, CefCursorHandle, Ce
 	msg.type = MessageQueue::Type::OnCursorChange;
 	msg.integer = static_cast<int>( gmodCursor );
 	QueueMessage( std::move( msg ) );
+
+	return false;
 }
 
-
+//
+// CefRenderHandler interface
+//
 void ChromiumBrowser::GetViewRect( CefRefPtr<CefBrowser>, CefRect& rect )
 {
 	rect.x = 0;
@@ -789,7 +790,7 @@ bool ChromiumBrowser::OnBeforeBrowse( CefRefPtr<CefBrowser>,
 ChromiumBrowser::ReturnValue ChromiumBrowser::OnBeforeResourceLoad( CefRefPtr<CefBrowser>,
 	CefRefPtr<CefFrame>,
 	CefRefPtr<CefRequest> request,
-	CefRefPtr<CefRequestCallback> )
+	CefRefPtr<CefCallback> )
 {
 	CefURLParts urlParts;
 	if ( !CefParseURL( request->GetURL(), urlParts ) )

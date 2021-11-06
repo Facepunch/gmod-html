@@ -21,6 +21,7 @@ if(WIN32)
 		shlwapi
 		winmm
 		wsock32
+		WS2_32
 		comctl32
 		rpcrt4
 		version
