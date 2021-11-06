@@ -243,11 +243,31 @@ void ChromiumBrowser::QueueMessage( MessageQueue::Message&& message )
 //
 void ChromiumBrowser::Close()
 {
+	if (m_BrowserHost == nullptr) {
+		m_Deferred.emplace_back(
+			[] (auto& self) {
+				self.Close();
+			}
+		);
+
+		return;
+	}
+
 	m_BrowserHost->CloseBrowser( true );
 }
 
 void ChromiumBrowser::SetSize( int wide, int tall )
 {
+	if (m_BrowserHost == nullptr) {
+		m_Deferred.emplace_back(
+			[=] (auto& self) {
+				self.SetSize(wide, tall);
+			}
+		);
+
+		return;
+	}
+
 	m_Wide = wide;
 	m_Tall = tall;
 	m_BrowserHost->WasResized();
@@ -255,11 +275,25 @@ void ChromiumBrowser::SetSize( int wide, int tall )
 
 void ChromiumBrowser::SetFocused( bool hasFocus )
 {
+	if (m_BrowserHost == nullptr) {
+		m_Deferred.emplace_back(
+			[=] (auto& self) {
+				self.SetFocused(hasFocus);
+			}
+		);
+
+		return;
+	}
+
 	m_BrowserHost->SetFocus( hasFocus );
 }
 
 void ChromiumBrowser::SendKeyEvent( IHtmlClient::KeyEvent keyEvent )
 {
+	if (m_BrowserHost == nullptr) {
+		return;
+	}
+
 	CefKeyEvent chromiumKeyEvent;
 	chromiumKeyEvent.modifiers = GetModifiers( keyEvent.modifiers );
 
@@ -302,6 +336,10 @@ void ChromiumBrowser::SendKeyEvent( IHtmlClient::KeyEvent keyEvent )
 
 void ChromiumBrowser::SendMouseMoveEvent( IHtmlClient::MouseEvent gmodMouseEvent, bool mouseLeave )
 {
+	if (m_BrowserHost == nullptr) {
+		return;
+	}
+
 	CefMouseEvent mouseEvent;
 	mouseEvent.x = gmodMouseEvent.x;
 	mouseEvent.y = gmodMouseEvent.y;
@@ -312,6 +350,10 @@ void ChromiumBrowser::SendMouseMoveEvent( IHtmlClient::MouseEvent gmodMouseEvent
 
 void ChromiumBrowser::SendMouseWheelEvent( IHtmlClient::MouseEvent gmodMouseEvent, int deltaX, int deltaY )
 {
+	if (m_BrowserHost == nullptr) {
+		return;
+	}
+
 	// Some CEF bug is fucking this up. I don't care much for worrying about it yet
 	CefMouseEvent mouseEvent;
 	mouseEvent.x = gmodMouseEvent.x;
@@ -323,6 +365,10 @@ void ChromiumBrowser::SendMouseWheelEvent( IHtmlClient::MouseEvent gmodMouseEven
 
 void ChromiumBrowser::SendMouseClickEvent( IHtmlClient::MouseEvent gmodMouseEvent, IHtmlClient::MouseButton gmodButtonType, bool mouseUp, int clickCount )
 {
+	if (m_BrowserHost == nullptr) {
+		return;
+	}
+
 	CefMouseEvent mouseEvent;
 	mouseEvent.x = gmodMouseEvent.x;
 	mouseEvent.y = gmodMouseEvent.y;
@@ -348,11 +394,35 @@ void ChromiumBrowser::SendMouseClickEvent( IHtmlClient::MouseEvent gmodMouseEven
 
 void ChromiumBrowser::LoadUrl( const std::string& url )
 {
+	if (m_Browser == nullptr) {
+		std::string url_Copy {url};
+
+		m_Deferred.emplace_back(
+			[=] (auto& self) {
+				self.LoadUrl(url_Copy);
+			}
+		);
+
+		return;
+	}
+
 	m_Browser->GetMainFrame()->LoadURL( CefString( url ) );
 }
 
 void ChromiumBrowser::SetHtml( const std::string& html )
 {
+	if (m_Browser == nullptr) {
+		std::string html_Copy {html};
+
+		m_Deferred.emplace_back(
+			[=] (auto& self) {
+				self.SetHtml(html_Copy);
+			}
+		);
+
+		return;
+	}
+
 	// asset://html/?{myhtml}
 	CefURLParts urlParts;
 	CefString( &urlParts.scheme ).FromString( "asset" );
@@ -369,26 +439,78 @@ void ChromiumBrowser::SetHtml( const std::string& html )
 
 void ChromiumBrowser::Refresh()
 {
+	if (m_Browser == nullptr) {
+		m_Deferred.emplace_back(
+			[] (auto& self) {
+				self.Refresh();
+			}
+		);
+
+		return;
+	}
+
 	m_Browser->Reload();
 }
 
 void ChromiumBrowser::Stop()
 {
+	if (m_Browser == nullptr) {
+		m_Deferred.emplace_back(
+			[] (auto& self) {
+				self.Stop();
+			}
+		);
+
+		return;
+	}
+
 	m_Browser->StopLoad();
 }
 
 void ChromiumBrowser::GoBack()
 {
+	if (m_Browser == nullptr) {
+		m_Deferred.emplace_back(
+			[] (auto& self) {
+				self.GoBack();
+			}
+		);
+
+		return;
+	}
+
 	m_Browser->GoBack();
 }
 
 void ChromiumBrowser::GoForward()
 {
+	if (m_Browser == nullptr) {
+		m_Deferred.emplace_back(
+			[] (auto& self) {
+				self.GoForward();
+			}
+		);
+
+		return;
+	}
+
 	m_Browser->GoForward();
 }
 
 void ChromiumBrowser::RunJavaScript( const std::string& code )
 {
+	if (m_Browser == nullptr) {
+		std::string code_Copy {code};
+
+		m_Deferred.emplace_back(
+			[=] (auto& self) {
+				self.RunJavaScript(code_Copy);
+			}
+		);
+
+		return;
+	}
+
 	auto message = CefProcessMessage::Create( "ExecuteJavaScript" );
 	auto args = message->GetArgumentList();
 
@@ -399,6 +521,19 @@ void ChromiumBrowser::RunJavaScript( const std::string& code )
 
 void ChromiumBrowser::RegisterJavaScriptFunction( const std::string& objName, const std::string& funcName )
 {
+	if (m_Browser == nullptr) {
+		std::string objName_Copy {objName};
+		std::string funcName_Copy {funcName};
+
+		m_Deferred.emplace_back(
+			[=] (auto& self) {
+				self.RegisterJavaScriptFunction(objName_Copy, funcName_Copy);
+			}
+		);
+
+		return;
+	}
+
 	auto message = CefProcessMessage::Create( "RegisterFunction" );
 	auto args = message->GetArgumentList();
 
@@ -414,6 +549,18 @@ void ChromiumBrowser::SetOpenLinksExternally( bool openLinksExternally )
 
 void ChromiumBrowser::ExecuteCallback( int callbackId, const JSValue& paramsArray )
 {
+	if (m_Browser == nullptr) {
+		JSValue paramsArray_Copy {paramsArray};
+
+		m_Deferred.emplace_back(
+			[=] (auto& self) {
+				self.ExecuteCallback(callbackId, paramsArray_Copy);
+			}
+		);
+
+		return;
+	}
+
 	const auto& paramsVector = ( static_cast<const JSArray*>( paramsArray.GetInternalArray() ) )->GetInternalData(); // spaghetti
 	auto message = CefProcessMessage::Create( "ExecuteCallback" );
 	auto outArgs = message->GetArgumentList();
@@ -462,6 +609,12 @@ void ChromiumBrowser::OnAfterCreated( CefRefPtr<CefBrowser> browser )
 {
 	m_Browser = browser;
 	m_BrowserHost = browser->GetHost();
+
+	for (auto& func : m_Deferred) {
+		func(*this);
+	}
+
+	m_Deferred.clear();
 }
 
 void ChromiumBrowser::OnBeforeClose( CefRefPtr<CefBrowser> browser )

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 
 #include "cef_start.h"
 #include "include/cef_client.h"
@@ -10,6 +11,7 @@
 #include "ImageData.h"
 
 #include "html/IHtmlClient.h"
+
 
 class ChromiumBrowser
 	: public CefClient
@@ -199,4 +201,8 @@ private:
 
 private:
 	IMPLEMENT_REFCOUNTING( ChromiumBrowser );
+
+private:
+	// Functions in this vector will be executed once our underlying CefBrowser is available
+	std::vector<std::function<void(ChromiumBrowser&)>> m_Deferred;
 };
