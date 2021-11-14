@@ -3,6 +3,31 @@
 
 #include <cstdlib>
 #include <string>
+#include <iostream>
+
+#ifdef _WIN32
+	#include <direct.h>
+	#define cd _chdir
+#else
+	#include "unistd.h"
+	#define cd chdir
+#endif
+
+// Is this exe 32-bit or 64-bit?
+#if _WIN32 || _WIN64
+	#if _WIN64
+		#define ENVIRONMENT64
+	#else
+		#define ENVIRONMENT32
+	#endif
+#endif
+#if __GNUC__
+	#if __x86_64__ || __ppc64__
+		#define ENVIRONMENT64
+	#else
+		#define ENVIRONMENT32
+	#endif
+#endif
 
 #if defined( _WIN32 )
 	#include "include/cef_sandbox_win.h"
@@ -40,9 +65,20 @@ int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	}
 #endif
 
-	//std::string env{std::getenv("PATH")};
-	//env += ";D:\\Program Files (x86)\\Steam\\steamapps\\common\\GarrysMod\\bin\\win64";
-	//SetEnvironmentVariable("PATH", env.c_str());
+	// Make sure the CWD is always GarrysMod root (where hl2.exe is)
+	char exePath[MAX_PATH];
+	GetModuleFileNameA(NULL, exePath, MAX_PATH);
+
+	std::string::size_type lastSlashPos = std::string(exePath).find_last_of("\\/");
+	std::string exeDir = std::string(exePath).substr(0, lastSlashPos);
+
+#ifdef ENVIRONMENT64
+	exeDir += "\\..\\..";
+#else
+	exeDir += "\\..";
+#endif
+
+	cd(exeDir.c_str());
 
 	HMODULE hLauncher = LoadLibraryA("launcher.dll");
 	void* mainFn = static_cast<void*>(GetProcAddress(hLauncher, "LauncherMain"));
