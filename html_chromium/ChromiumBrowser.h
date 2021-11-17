@@ -12,7 +12,6 @@
 
 #include "html/IHtmlClient.h"
 
-
 class ChromiumBrowser
 	: public CefClient
 	, public CefLifeSpanHandler

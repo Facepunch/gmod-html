@@ -168,8 +168,8 @@ static bool CefListToV8Values( CefV8ValueList& outList, const CefRefPtr<CefListV
 //
 void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, CefRefPtr<CefCommandLine> command_line )
 {
-	command_line->AppendSwitch( "disable-gpu" );
-	command_line->AppendSwitch( "disable-gpu-compositing" );
+	command_line->AppendSwitch( "enable-gpu" );
+	command_line->AppendSwitch( "disable-gpu-compositing" ); // TODO: Figure out why GPU Compositing being enabled causes OnPaint not to be called (regardless of enable/disable-gpu)
 	command_line->AppendSwitch( "disable-smooth-scrolling" );
 #ifdef _WIN32
 	command_line->AppendSwitch( "enable-begin-frame-scheduling" );
@@ -182,7 +182,7 @@ void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, 
 #endif
 
 #ifdef OSX
-		command_line->AppendSwitch( "use-mock-keychain" );
+	command_line->AppendSwitch( "use-mock-keychain" );
 #endif
 
 	// https://bitbucket.org/chromiumembedded/cef/issues/2400
