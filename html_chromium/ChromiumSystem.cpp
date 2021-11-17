@@ -32,7 +32,7 @@ public:
 	void OnBeforeCommandLineProcessing( const CefString& process_type, CefRefPtr<CefCommandLine> command_line ) override
 	{
 		command_line->AppendSwitch( "enable-gpu" );
-		//command_line->AppendSwitch( "disable-gpu-compositing" ); // TODO: Figure out why GPU Compositing being enabled causes OnPaint not to be called (regardless of enable/disable-gpu)
+		command_line->AppendSwitch( "disable-gpu-compositing" ); // TODO: Figure out why GPU Compositing being enabled causes OnPaint not to be called (regardless of enable/disable-gpu)
 		command_line->AppendSwitch( "disable-smooth-scrolling" );
 #ifdef _WIN32
 		command_line->AppendSwitch( "enable-begin-frame-scheduling" );
