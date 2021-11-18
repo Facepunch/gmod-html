@@ -21,16 +21,31 @@ else()
 	message(FATAL_ERROR "No IMPORTED_LOCATION for libcef")
 endif()
 
-set(RESOURCES
-	${CEF_PATH}/Resources/cef.pak
-	${CEF_PATH}/Resources/cef_100_percent.pak
-	${CEF_PATH}/Resources/cef_200_percent.pak
-	${CEF_PATH}/Resources/cef_extensions.pak
-	${CEF_PATH}/Resources/devtools_resources.pak)
+if(WIN32)
+	set(RESOURCES
+		${CEF_PATH}/Resources/cef.pak
+		${CEF_PATH}/Resources/cef_100_percent.pak
+		${CEF_PATH}/Resources/cef_200_percent.pak
+		${CEF_PATH}/Resources/cef_extensions.pak
+		${CEF_PATH}/Resources/devtools_resources.pak)
+elseif(UNIX AND NOT APPLE)
+	set(RESOURCES
+		${CEF_PATH}/Resources/chrome_100_percent.pak
+		${CEF_PATH}/Resources/chrome_200_percent.pak
+		${CEF_PATH}/Resources/resources.pak)
+else()
+	message(FATAL_ERROR "No RESOURCES set")
+endif()
 
 install(FILES ${BINARIES} DESTINATION ${GAME_BIN_DIR})
-install(FILES ${RESOURCES} DESTINATION ${CMAKE_BINARY_DIR}/bin/chromium)
-install(DIRECTORY ${CEF_PATH}/Resources/locales DESTINATION ${CMAKE_BINARY_DIR}/bin/chromium)
+
+if(WIN32 OR APPLE)
+	install(FILES ${RESOURCES} DESTINATION chromium)
+	install(DIRECTORY ${CEF_PATH}/Resources/locales DESTINATION chromium)
+else()
+	install(FILES ${RESOURCES} DESTINATION linux32/chromium)
+	install(DIRECTORY ${CEF_PATH}/Resources/locales DESTINATION linux32/chromium)
+endif()
 
 # Actual lib
 set(SOURCES
@@ -57,3 +72,8 @@ include_directories(${CEF_PATH})
 add_library(html_chromium SHARED ${SOURCES})
 target_link_libraries(html_chromium html libcef_imp libcef_dll_wrapper)
 SET_TARGET_PROPERTIES(html_chromium PROPERTIES PREFIX "")
+
+if(UNIX)
+	set_target_properties(html_chromium PROPERTIES OUTPUT_NAME "html_chromium_client")
+endif()
+install(TARGETS html_chromium LIBRARY DESTINATION ${GAME_BIN_DIR})

@@ -3,21 +3,24 @@ if(WIN32)
 	cmake_minimum_required(VERSION 3.15)
 	cmake_policy(SET CMP0091 NEW)
 else()
-	cmake_minimum_required(VERSION 2.8.7)
+	cmake_minimum_required(VERSION 3.19)
 endif()
 
 project(gmod-html LANGUAGES CXX)
 
 # We can only do release builds
 set(CMAKE_CONFIGURATION_TYPES Release Debug)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Match GMod and our prebuilt libraries
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out)
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-	set(CMAKE_INSTALL_PREFIX  ${CMAKE_CURRENT_BINARY_DIR}/bin CACHE PATH "..." FORCE)
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/dist CACHE PATH "..." FORCE)
 endif()
 
 if(WIN32)
@@ -32,11 +35,6 @@ else()
 	message(FATAL_ERROR "No GAME_DIR definition")
 endif()
 
-# Kind of lame but I'm having PDB timestamp mismatches
-set (CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/${GAME_BIN_DIR})
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/${GAME_BIN_DIR})
-set (CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/${GAME_BIN_DIR})
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/${GAME_BIN_DIR})
 
 # ImGui
 add_subdirectory(thirdparty/imgui-1.74)
@@ -54,12 +52,12 @@ add_subdirectory(thirdparty/glfw-3.3.2)
 # Chromium Project
 if(WIN32)
 	if("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
-		set(CEF_PATH ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cef3/cef_binary_95.7.18+g0d6005e+chromium-95.0.4638.69_windows32)
+		set(CEF_PATH ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cef3/cef_binary_96.0.13+g622afbd+chromium-96.0.4664.0_windows32)
 	else()
-		set(CEF_PATH ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cef3/cef_binary_95.7.18+g0d6005e+chromium-95.0.4638.69_windows64)
+		set(CEF_PATH ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cef3/cef_binary_96.0.13+g622afbd+chromium-96.0.4664.0_windows64)
 	endif()
 elseif(UNIX AND NOT APPLE)
-	set(CEF_PATH ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cef3/cef_binary_95.7.18+g0d6005e+chromium-95.0.4638.69_linux64)
+	set(CEF_PATH ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cef3/cef_binary_96.0.13+g622afbd+chromium-96.0.4664.0_linux64)
 	add_definitions(-DPOSIX -DLINUX)
 else()
 	message(FATAL_ERROR "No CEF_PATH")
@@ -79,21 +77,26 @@ else()
 	message(FATAL_ERROR "No libcef_imp import library set")
 endif()
 
-# Chromium Sandbox
-add_library(cef_sandbox STATIC IMPORTED)
+# Chromium Sandbox (Not a library on Linux)
+if(WIN32 OR APPLE)
+	add_library(cef_sandbox STATIC IMPORTED)
 
-if(WIN32)
-	set_target_properties(cef_sandbox PROPERTIES IMPORTED_LOCATION ${CEF_PATH}/Release/cef_sandbox.lib)
-else()
-	message(FATAL_ERROR "No cef_sandbox library set")
+	if(WIN32)
+		set_target_properties(cef_sandbox PROPERTIES IMPORTED_LOCATION ${CEF_PATH}/Release/cef_sandbox.lib)
+	else()
+		message(FATAL_ERROR "No cef_sandbox library set")
+	endif()
 endif()
 
 # Our projects
-add_subdirectory(example_host)
-add_subdirectory(gmod_launcher)
 add_subdirectory(html)
 add_subdirectory(html_stub)
 add_subdirectory(html_chromium)
+
+if(WIN32)
+	add_subdirectory(example_host)
+	add_subdirectory(gmod_launcher)
+endif()
 
 if(UNIX)
 	add_subdirectory(html_chromium/chromium_process)

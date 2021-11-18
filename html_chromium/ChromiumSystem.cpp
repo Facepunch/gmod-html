@@ -13,6 +13,7 @@
 #endif
 #include "cef_end.h"
 
+#include <algorithm>
 #include <time.h>
 
 #ifdef _WIN32
