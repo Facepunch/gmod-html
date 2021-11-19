@@ -50,6 +50,7 @@ public:
 
 	JSValue()
 		: _type( Type::Undefined )
+		, _bool( false )
 	{}
 
 	JSValue( bool value )
@@ -79,6 +80,7 @@ public:
 
 	JSValue( const JSValue& other )
 		: _type( other._type )
+		, _bool( false )
 	{
 		switch ( _type )
 		{
@@ -104,6 +106,7 @@ public:
 
 	JSValue( JSValue&& other ) noexcept
 		: _type( other._type )
+		, _bool(false)
 	{
 		switch ( _type )
 		{
