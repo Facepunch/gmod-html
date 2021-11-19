@@ -28,6 +28,9 @@ public:
 	ChromiumBrowser();
 	~ChromiumBrowser();
 
+	ChromiumBrowser(const ChromiumBrowser&) = delete;
+	ChromiumBrowser& operator=(const ChromiumBrowser&) = delete;
+
 	ImageData& GetImageData();
 	MessageQueue& GetMessageQueue();
 	void QueueMessage( MessageQueue::Message&& message );
@@ -203,5 +206,17 @@ private:
 
 private:
 	// Functions in this vector will be executed once our underlying CefBrowser is available
-	std::vector<std::function<void(ChromiumBrowser&)>> m_Deferred;
+	std::vector<std::function<void()>> m_Deferred;
+
+	template<typename T>
+	void RunOrDeferForInit(T func)
+	{
+		if (m_Browser != nullptr && m_BrowserHost != nullptr)
+		{
+			func();
+			return;
+		}
+
+		m_Deferred.push_back(std::move(func));
+	}
 };
