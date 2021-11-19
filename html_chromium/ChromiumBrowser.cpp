@@ -837,6 +837,15 @@ void ChromiumBrowser::OnPopupSize( CefRefPtr<CefBrowser>, const CefRect& rect )
 	m_PopupY = rect.y;
 }
 
+bool ShouldFullCopy( const CefRenderHandler::RectList& dirtyRects, int width, int height ) {
+	int dirty_area = 0;
+	for (auto &&rect : dirtyRects) {
+		dirty_area += rect.width * rect.height;
+	}
+	// TODO: Find optimal threshold using benchmarking.
+	return dirty_area > 0.8 * width * height;
+}
+
 void ChromiumBrowser::OnPaint( CefRefPtr<CefBrowser>, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, const void* buffer, int width, int height )
 {
 	//
@@ -856,21 +865,26 @@ void ChromiumBrowser::OnPaint( CefRefPtr<CefBrowser>, CefRenderHandler::PaintEle
 
 		case PET_VIEW:
 			m_ImageData.Lock();
-			m_ImageData.SetData( static_cast<const unsigned char*>( buffer ), width, height );
 
-			// Blit our popup over this image
-			if ( m_PopupWide > 0 && m_PopupTall > 0 )
-			{
-				// Copy row-by-row because the destination pixels may not be contiguous
-				for ( int SrcY = 0; SrcY < m_PopupTall; SrcY++ )
+			if ( m_ImageData.ResizeData( width, height ) || ShouldFullCopy( dirtyRects, width, height ) ) {
+				// Copy whole buffer over ImageData
+				m_ImageData.SetData(static_cast<const unsigned char*>(buffer), width, height);
+			} else {
+				// Blit the dirty parts of buffer over ImageData
+				for (auto &&rect : dirtyRects)
 				{
-					memcpy( &m_ImageData.m_Data[( SrcY + m_PopupY ) * width * 4 + m_PopupX * 4],
-						&m_PopupData[SrcY * m_PopupWide * 4],
-						m_PopupWide * 4 );
+					if (!rect.IsEmpty()) {
+						m_ImageData.Blit(static_cast<const unsigned char*>(buffer), rect.x, rect.y, rect.width, rect.height);
+					}
 				}
 			}
 
-			m_ImageData.SetDirty( true );
+			// Blit our popup over the ImageData
+			if ( m_PopupWide > 0 && m_PopupTall > 0 )
+			{
+				m_ImageData.BlitRelative(m_PopupData, m_PopupX, m_PopupY, m_PopupWide, m_PopupTall);
+			}
+
 			m_ImageData.Unlock();
 			return;
 	}
