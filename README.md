@@ -11,7 +11,7 @@ You'll probably want the **Minimal Distribution** unless you need to debug with 
 ## Currently supported CEF version
 The current version of CEF that's supported by this library is:
 
-- **95.7.18+g0d6005e+chromium-95.0.4638.69**
+- **96.0.16+g89c902b+chromium-96.0.4664.55**
 
 This is not the only version that could be supported, but it's the version that's currently configured and tested to work.
 
