@@ -33,7 +33,7 @@ public:
 	void OnBeforeCommandLineProcessing( const CefString& process_type, CefRefPtr<CefCommandLine> command_line ) override
 	{
 		command_line->AppendSwitch( "enable-gpu" );
-		command_line->AppendSwitch( "disable-gpu-compositing" ); // TODO: Figure out why GPU Compositing being enabled causes OnPaint not to be called (regardless of enable/disable-gpu)
+		command_line->AppendSwitch( "disable-gpu-compositing" ); // NOTE: Enabling GPU Compositing will make OnAcceleratedPaint run instead of OnPaint (CEF must be patched or NOTHING will run!)
 		command_line->AppendSwitch( "disable-smooth-scrolling" );
 #ifdef _WIN32
 		command_line->AppendSwitch( "enable-begin-frame-scheduling" );
@@ -164,7 +164,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 		chromiumDir = targetPath.string();
 	}
 
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Windows NT; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36 GMod/13" );
+	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Windows NT; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 GMod/13" );
 
 	// GMOD: GO - We use the same resources with 32-bit and 64-bit builds, so always use the 32-bit bin path for them
 	CefString( &settings.resources_dir_path ).FromString( chromiumDir );
@@ -172,7 +172,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	settings.multi_threaded_message_loop = true;
 #elif LINUX
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Linux; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36 GMod/13" );
+	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Linux; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 GMod/13" );
 
 #if defined(__x86_64__) || defined(_WIN64)
 	CefString( &settings.browser_subprocess_path ).FromString( strBaseDir + "/bin/linux64/chromium_process" );
@@ -186,7 +186,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	settings.multi_threaded_message_loop = true;
 #elif OSX
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Macintosh; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36 GMod/13" );
+	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Macintosh; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 GMod/13" );
 #else
 #error
 #endif
@@ -270,7 +270,7 @@ IHtmlClient* ChromiumSystem::CreateClient( IHtmlClientListener* listener )
 	CefWindowInfo windowInfo;
 	windowInfo.SetAsWindowless( 0 );
 	// TODO: See ChromiumBrowser::OnAcceleratedPaint
-	windowInfo.shared_texture_enabled = true;
+	//windowInfo.shared_texture_enabled = true;
 
 	CefBrowserSettings browserSettings;
 	CefString( &browserSettings.default_encoding ).FromString( "UTF-8" );
