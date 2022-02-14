@@ -12,7 +12,9 @@ endif()
 # Lame
 include_directories(${CEF_PATH})
 
-add_executable(gmod_launcher WIN32 ${SOURCES})
+set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/gmod_icon.rc")
+
+add_executable(gmod_launcher WIN32 ${SOURCES} ${APP_ICON_RESOURCE_WINDOWS})
 target_link_libraries(gmod_launcher html libcef_imp libcef_dll_wrapper)
 target_link_libraries(gmod_launcher optimized cef_sandbox)
 
