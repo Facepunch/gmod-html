@@ -34,7 +34,7 @@ cd build_x64
 cmake -G "Visual Studio 16 2019" -A x64 ..
 ```
 
-After running either of these sets of commands, you can enter your created directory and open the `gmod-html.sln` solution in Visual Studio. Compiling the `INSTALL` project will place a complete build into the `dist` folder by default.
+After running either of these sets of commands, you can enter your created directory and open the `gmod-html.sln` solution in Visual Studio. Compiling the `INSTALL` project will place a complete build into the `<your_build_dir>/out` folder by default.
 
 ### Linux
 #### Requirements
@@ -49,10 +49,10 @@ cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Release ..
 make && make install
 ```
 
-This will place a complete build into the `dist` folder by default.
+This will place a complete build into the `build/out` folder by default.
 
 ### macOS
-Todo
+TODO: Still working on this.
 
 ## TODO
 - Improve the CMake files. We don't use them for GMod builds so they're a bit wonky.
