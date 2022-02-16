@@ -13,6 +13,7 @@
 #endif
 #include "cef_end.h"
 
+#include <algorithm>
 #include <time.h>
 
 #ifdef _WIN32
@@ -30,8 +31,8 @@ public:
 	//
 	void OnBeforeCommandLineProcessing( const CefString& process_type, CefRefPtr<CefCommandLine> command_line ) override
 	{
-		command_line->AppendSwitch( "disable-gpu" );
-		command_line->AppendSwitch( "disable-gpu-compositing" );
+		command_line->AppendSwitch( "enable-gpu" );
+		command_line->AppendSwitch( "disable-gpu-compositing" ); // NOTE: Enabling GPU Compositing will make OnAcceleratedPaint run instead of OnPaint (CEF must be patched or NOTHING will run!)
 		command_line->AppendSwitch( "disable-smooth-scrolling" );
 #ifdef _WIN32
 		command_line->AppendSwitch( "enable-begin-frame-scheduling" );
@@ -48,7 +49,7 @@ public:
 #endif
 
 		// https://bitbucket.org/chromiumembedded/cef/issues/2400
-		command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents" );
+		command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents,HardwareMediaKeyHandling" );
 
 		// Auto-play media
 		command_line->AppendSwitchWithValue( "autoplay-policy", "no-user-gesture-required" );
@@ -108,7 +109,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	settings.no_sandbox = false;
 #endif
 	settings.command_line_args_disabled = true;
-	settings.log_severity = LOGSEVERITY_VERBOSE;
+	settings.log_severity = LOGSEVERITY_DEFAULT;
 
 #ifdef _WIN32
 	// Chromium will be sad if we don't resolve any NTFS junctions for it
@@ -162,7 +163,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 		chromiumDir = targetPath.string();
 	}
 
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Windows NT; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36 GMod/13" );
+	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Windows NT; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 GMod/13" );
 
 	// GMOD: GO - We use the same resources with 32-bit and 64-bit builds, so always use the 32-bit bin path for them
 	CefString( &settings.resources_dir_path ).FromString( chromiumDir );
@@ -170,7 +171,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	settings.multi_threaded_message_loop = true;
 #elif LINUX
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Linux; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36 GMod/13" );
+	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Linux; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 GMod/13" );
 
 #if defined(__x86_64__) || defined(_WIN64)
 	CefString( &settings.browser_subprocess_path ).FromString( strBaseDir + "/bin/linux64/chromium_process" );
@@ -184,7 +185,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	settings.multi_threaded_message_loop = true;
 #elif OSX
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Macintosh; Intel Mac OS X; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36 GMod/13" );
+	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Macintosh; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 GMod/13" );
 #else
 #error
 #endif
@@ -267,15 +268,15 @@ IHtmlClient* ChromiumSystem::CreateClient( IHtmlClientListener* listener )
 {
 	CefWindowInfo windowInfo;
 	windowInfo.SetAsWindowless( 0 );
+	// TODO: See ChromiumBrowser::OnAcceleratedPaint
+	//windowInfo.shared_texture_enabled = true;
 
 	CefBrowserSettings browserSettings;
 	CefString( &browserSettings.default_encoding ).FromString( "UTF-8" );
 	browserSettings.windowless_frame_rate = 60;
 	browserSettings.javascript_access_clipboard = STATE_DISABLED;
 	browserSettings.javascript_close_windows = STATE_DISABLED;
-	browserSettings.universal_access_from_file_urls = STATE_DISABLED;
-	browserSettings.file_access_from_file_urls = STATE_DISABLED;
-	browserSettings.webgl = STATE_DISABLED;
+	//browserSettings.webgl = STATE_DISABLED;
 
 	CefRefPtr<ChromiumBrowser> cefClient( new ChromiumBrowser );
 

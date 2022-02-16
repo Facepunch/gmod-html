@@ -1,13 +1,5 @@
 set(SOURCES
-	Main.cpp
-	Window.cpp
-	Window.h
-	HtmlSystemLoader.cpp
-	HtmlSystemLoader.h
-	HtmlResourceHandler.cpp
-	HtmlResourceHandler.h
-	HtmlPanel.cpp
-	HtmlPanel.h)
+	Main.cpp)
 
 if(WIN32)
 	set(SOURCES
@@ -20,12 +12,14 @@ endif()
 # Lame
 include_directories(${CEF_PATH})
 
-add_executable(example_host WIN32 ${SOURCES})
-target_link_libraries(example_host glfw glad imgui html libcef_imp libcef_dll_wrapper)
-target_link_libraries(example_host optimized cef_sandbox)
+set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/gmod_icon.rc")
+
+add_executable(gmod_launcher WIN32 ${SOURCES} ${APP_ICON_RESOURCE_WINDOWS})
+target_link_libraries(gmod_launcher html libcef_imp libcef_dll_wrapper)
+target_link_libraries(gmod_launcher optimized cef_sandbox)
 
 if(WIN32)
-	target_link_libraries(example_host
+	target_link_libraries(gmod_launcher
 		shlwapi
 		winmm
 		wsock32

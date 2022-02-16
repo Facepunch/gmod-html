@@ -1,6 +1,8 @@
 # The directory I like to build under
 /build
+/build_x64
+/build_x86
 
 # Dependencies that are downloaded/installed separately
-/thirdparty/cef3/*
+/thirdparty/cef3/**
 !/thirdparty/cef3/README.txt

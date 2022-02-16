@@ -4,7 +4,7 @@
 #include "JSObjects.h"
 
 #include "cef_start.h"
-#include "include/base/cef_bind.h"
+#include "include/base/cef_callback.h"
 #include "include/wrapper/cef_closure_task.h"
 #include "cef_end.h"
 
@@ -70,7 +70,7 @@ void ChromiumClient::HandleJavaScriptCall( const char* objName, const char* func
 		return;
 
 	// TODO: This seems to be copying retArray
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::ExecuteCallback, m_Browser, callbackId, std::move( retArray ) ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::ExecuteCallback, m_Browser, callbackId, std::move( retArray ) ) );
 }
 
 //
@@ -78,7 +78,7 @@ void ChromiumClient::HandleJavaScriptCall( const char* objName, const char* func
 //
 void ChromiumClient::Close()
 {
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::Close, m_Browser ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::Close, m_Browser ) );
 
 	g_ChromiumSystem.OnClientClose( this );
 	delete this;
@@ -86,77 +86,77 @@ void ChromiumClient::Close()
 
 void ChromiumClient::SetSize( int wide, int tall )
 {
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::SetSize, m_Browser, wide, tall ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::SetSize, m_Browser, wide, tall ) );
 }
 
 void ChromiumClient::SetFocused( bool hasFocus )
 {
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::SetFocused, m_Browser, hasFocus ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::SetFocused, m_Browser, hasFocus ) );
 }
 
 void ChromiumClient::SendKeyEvent( KeyEvent keyEvent )
 {
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::SendKeyEvent, m_Browser, keyEvent ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::SendKeyEvent, m_Browser, keyEvent ) );
 }
 
 void ChromiumClient::SendMouseMoveEvent( MouseEvent mouseEvent, bool mouseLeave )
 {
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::SendMouseMoveEvent, m_Browser, mouseEvent, mouseLeave ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::SendMouseMoveEvent, m_Browser, mouseEvent, mouseLeave ) );
 }
 
 void ChromiumClient::SendMouseWheelEvent( MouseEvent mouseEvent, int deltaX, int deltaY )
 {
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::SendMouseWheelEvent, m_Browser, mouseEvent, deltaX, deltaY ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::SendMouseWheelEvent, m_Browser, mouseEvent, deltaX, deltaY ) );
 }
 
 void ChromiumClient::SendMouseClickEvent( MouseEvent mouseEvent, MouseButton mouseButton, bool mouseUp, int clickCount )
 {
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::SendMouseClickEvent, m_Browser, mouseEvent, mouseButton, mouseUp, clickCount ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::SendMouseClickEvent, m_Browser, mouseEvent, mouseButton, mouseUp, clickCount ) );
 }
 
 void ChromiumClient::LoadUrl( const char* url )
 {
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::LoadUrl, m_Browser, std::string( url ) ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::LoadUrl, m_Browser, std::string( url ) ) );
 }
 
 void ChromiumClient::SetHtml( const char* html )
 {
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::SetHtml, m_Browser, std::string( html ) ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::SetHtml, m_Browser, std::string( html ) ) );
 }
 
 void ChromiumClient::Refresh()
 {
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::Refresh, m_Browser ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::Refresh, m_Browser ) );
 }
 
 void ChromiumClient::Stop()
 {
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::Stop, m_Browser ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::Stop, m_Browser ) );
 }
 
 void ChromiumClient::GoBack()
 {
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::GoBack, m_Browser ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::GoBack, m_Browser ) );
 }
 
 void ChromiumClient::GoForward()
 {
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::GoForward, m_Browser ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::GoForward, m_Browser ) );
 }
 
 void ChromiumClient::RunJavaScript( const char* code )
 {
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::RunJavaScript, m_Browser, std::string( code ) ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::RunJavaScript, m_Browser, std::string( code ) ) );
 }
 
 void ChromiumClient::RegisterJavaScriptFunction( const char* objName, const char* funcName )
 {
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::RegisterJavaScriptFunction, m_Browser, std::string( objName ), std::string( funcName ) ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::RegisterJavaScriptFunction, m_Browser, std::string( objName ), std::string( funcName ) ) );
 }
 
 void ChromiumClient::SetOpenLinksExternally( bool openLinksExternally )
 {
-	CefPostTask( TID_UI, base::Bind( &ChromiumBrowser::SetOpenLinksExternally, m_Browser, openLinksExternally ) );
+	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::SetOpenLinksExternally, m_Browser, openLinksExternally ) );
 }
 
 bool ChromiumClient::LockImageData()

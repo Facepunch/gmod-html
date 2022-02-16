@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 
 #include "cef_start.h"
 #include "include/cef_client.h"
@@ -26,6 +27,9 @@ class ChromiumBrowser
 public:
 	ChromiumBrowser();
 	~ChromiumBrowser();
+
+	ChromiumBrowser(const ChromiumBrowser&) = delete;
+	ChromiumBrowser& operator=(const ChromiumBrowser&) = delete;
 
 	ImageData& GetImageData();
 	MessageQueue& GetMessageQueue();
@@ -54,7 +58,7 @@ public:
 
 public:
 	//
-	// CefClient interface 
+	// CefClient interface
 	//
 	CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override { return this; }
 	CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
@@ -85,9 +89,9 @@ public:
 		CefRefPtr<CefDictionaryValue>&,
 		bool* ) override;
 
-//
-// CefLoadHandler interface
-//
+	//
+	// CefLoadHandler interface
+	//
 	void OnLoadStart( CefRefPtr<CefBrowser>, CefRefPtr<CefFrame> frame, CefLoadHandler::TransitionType ) override;
 	void OnLoadEnd( CefRefPtr<CefBrowser>, CefRefPtr<CefFrame> frame, int httpStatusCode ) override;
 	void OnLoadError( CefRefPtr<CefBrowser>, CefRefPtr<CefFrame> frame, CefLoadHandler::ErrorCode errorCode, const CefString& errorText, const CefString& failedURL ) override;
@@ -98,15 +102,16 @@ public:
 	void OnAddressChange( CefRefPtr<CefBrowser>, CefRefPtr<CefFrame> frame, const CefString& url ) override;
 	bool OnConsoleMessage( CefRefPtr<CefBrowser>, cef_log_severity_t level, const CefString& message, const CefString& source, int line ) override;
 	void OnTitleChange( CefRefPtr<CefBrowser>, const CefString& title ) override;
+	bool OnCursorChange( CefRefPtr<CefBrowser> browser, CefCursorHandle, cef_cursor_type_t chromeCursor, const CefCursorInfo& ) override;
 
 	//
 	// CefRenderHandler interface
 	//
-	void OnCursorChange( CefRefPtr<CefBrowser>, CefCursorHandle, CefRenderHandler::CursorType chromeCursor, const CefCursorInfo& ) override;
 	void GetViewRect( CefRefPtr<CefBrowser>, CefRect& rect ) override;
 	void OnPopupShow( CefRefPtr<CefBrowser>, bool show ) override;
 	void OnPopupSize( CefRefPtr<CefBrowser>, const CefRect& rect ) override;
 	void OnPaint( CefRefPtr<CefBrowser>, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, const void* buffer, int width, int height ) override;
+	void OnAcceleratedPaint( CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, void* shared_handle ) override;
 
 	//
 	// CefRequestHandler interface
@@ -127,30 +132,30 @@ public:
 		bool,
 		bool ) override;
 
-//
-// CefResourceRequestHandler interface
-//
+	//
+	// CefResourceRequestHandler interface
+	//
 	ReturnValue OnBeforeResourceLoad( CefRefPtr<CefBrowser>,
 		CefRefPtr<CefFrame>,
 		CefRefPtr<CefRequest> request,
-		CefRefPtr<CefRequestCallback> ) override;
+		CefRefPtr<CefCallback> ) override;
 
 	void OnProtocolExecution( CefRefPtr<CefBrowser>,
 		CefRefPtr<CefFrame>,
 		CefRefPtr<CefRequest>,
 		bool& allow_os_execution ) override;
 
-//
-// CefContextMenuHandler interface
-//
+	//
+	// CefContextMenuHandler interface
+	//
 	void OnBeforeContextMenu( CefRefPtr<CefBrowser>,
 		CefRefPtr<CefFrame>,
 		CefRefPtr<CefContextMenuParams>,
 		CefRefPtr<CefMenuModel> model ) override;
 
-//
-// CefDialogHandler interface
-//
+	//
+	// CefDialogHandler interface
+	//
 	bool OnFileDialog( CefRefPtr<CefBrowser>,
 		FileDialogMode,
 		const CefString&,
@@ -159,9 +164,9 @@ public:
 		int,
 		CefRefPtr<CefFileDialogCallback> callback ) override;
 
-//
-// CefJSDialogHandler
-//
+	//
+	// CefJSDialogHandler
+	//
 	bool OnJSDialog( CefRefPtr<CefBrowser>,
 		const CefString&,
 		JSDialogType,
@@ -198,4 +203,20 @@ private:
 
 private:
 	IMPLEMENT_REFCOUNTING( ChromiumBrowser );
+
+private:
+	// Functions in this vector will be executed once our underlying CefBrowser is available
+	std::vector<std::function<void()>> m_Deferred;
+
+	template<typename T>
+	void RunOrDeferForInit(T func)
+	{
+		if (m_Browser != nullptr && m_BrowserHost != nullptr)
+		{
+			func();
+			return;
+		}
+
+		m_Deferred.push_back(std::move(func));
+	}
 };
