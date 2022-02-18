@@ -24,7 +24,6 @@ namespace fs = std::experimental::filesystem;
 
 class ChromiumApp
 	: public CefApp
-	, public CefRenderProcessHandler
 {
 public:
 	//

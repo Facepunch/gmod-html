@@ -1,3 +1,4 @@
+# TODO: Update Resources for CEF 95+
 if(WIN32)
 	set(BINARIES
 		${CEF_PATH}/Release/chrome_elf.dll
