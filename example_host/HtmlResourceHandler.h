@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include "html/IHtmlResourceHandler.h"
@@ -12,4 +13,3 @@ class HtmlResourceHandler : public IHtmlResourceHandler
 
     void Message( const char* data ) override;
 };
-

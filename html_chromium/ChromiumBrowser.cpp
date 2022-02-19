@@ -1,4 +1,7 @@
-﻿#include "ChromiumBrowser.h"
+﻿
+#include <iostream>
+
+#include "ChromiumBrowser.h"
 
 #include "html/IHtmlClient.h"
 #include "JSObjects.h"
@@ -214,7 +217,11 @@ ChromiumBrowser::ChromiumBrowser()
 	, m_PopupTall( 0 )
 	, m_PopupData( nullptr )
 	, m_OpenLinksExternally( false )
-{}
+{
+	RunOrDeferForInit([this] {
+		m_BrowserHost->WasResized();
+	});
+}
 
 ChromiumBrowser::~ChromiumBrowser()
 {

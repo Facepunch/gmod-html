@@ -240,17 +240,17 @@ public:
 
 	//
 
-	const bool HashMap_Begin( const char*& pKey, size_t& keySize, const JSValue*& pValue ) const
+	bool HashMap_Begin( const char*& pKey, size_t& keySize, const JSValue*& pValue ) const
 	{
 		return _pHashMap->Begin( pKey, keySize, pValue );
 	}
 
-	const bool HashMap_Next( const char*& pKey, size_t& keySize, const JSValue*& pValue ) const
+	bool HashMap_Next( const char*& pKey, size_t& keySize, const JSValue*& pValue ) const
 	{
 		return _pHashMap->Next( pKey, keySize, pValue );
 	}
 
-	const size_t HashMap_Size() const
+	size_t HashMap_Size() const
 	{
 		return _pHashMap->Size();
 	}
@@ -294,4 +294,3 @@ private:
 		IHashMap* _pHashMap;    // Type::HashMap
 	};
 };
-

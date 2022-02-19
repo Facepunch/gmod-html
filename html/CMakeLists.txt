@@ -8,7 +8,6 @@ set(SOURCES
 add_library(html INTERFACE)
 target_include_directories(html INTERFACE ./)
 
-# Let us see the interface in Visual Studio
 if(MSVC)
 	add_custom_target(html.interface SOURCES ${SOURCES})
 endif()

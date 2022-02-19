@@ -1,4 +1,5 @@
-# The directory I like to build under
+
+# Common build directories
 /build
 /build_x64
 /build_x86
@@ -6,3 +7,7 @@
 # Dependencies that are downloaded/installed separately
 /thirdparty/cef3/**
 !/thirdparty/cef3/README.txt
+
+# IDE files
+/.vscode
+/.idea

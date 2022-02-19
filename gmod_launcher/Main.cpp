@@ -58,7 +58,7 @@ int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 		int exit_code = ChromiumMain( hInstance );
 
-		if ( exit_code != -1 )
+		if ( exit_code >= 0 )
 		{
 			return exit_code;
 		}

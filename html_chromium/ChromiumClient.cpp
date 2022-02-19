@@ -8,6 +8,7 @@
 #include "include/wrapper/cef_closure_task.h"
 #include "cef_end.h"
 
+#include <iostream>
 #include <string>
 
 ChromiumClient::ChromiumClient( CefRefPtr<ChromiumBrowser> browser, IHtmlClientListener* listener )
@@ -81,7 +82,6 @@ void ChromiumClient::Close()
 	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::Close, m_Browser ) );
 
 	g_ChromiumSystem.OnClientClose( this );
-	delete this;
 }
 
 void ChromiumClient::SetSize( int wide, int tall )
@@ -186,4 +186,3 @@ const unsigned char* ChromiumClient::GetImageData( int& imageWide, int& imageTal
 	ImageData& imageData = m_Browser->GetImageData();
 	return imageData.GetData( imageWide, imageTall );
 }
-

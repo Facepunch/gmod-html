@@ -1,3 +1,6 @@
+
+project(imgui)
+
 set(SOURCES
 	imconfig.h
 	imgui.cpp
@@ -13,6 +16,8 @@ set(SOURCES
 	imstb_textedit.h
 	imstb_truetype.h)
 
+
 add_library(imgui STATIC ${SOURCES})
-target_link_libraries(imgui glfw glad)
+target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLAD)
+target_link_libraries(imgui glfw glad ${glfw_LIBRARIES})
 target_include_directories(imgui PUBLIC ./)

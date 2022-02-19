@@ -1,8 +1,11 @@
-#include <Windows.h>
 
 #include "Window.h"
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
+
+#ifdef _WIN32
+	#include <Windows.h>
+#endif
 
 
 static void glfw_framebuffersize_callback( GLFWwindow* glfwWindow, int width, int height )

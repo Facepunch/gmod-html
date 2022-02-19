@@ -1,4 +1,5 @@
-﻿#include "ChromiumSystem.h"
+﻿
+#include "ChromiumSystem.h"
 #include "ChromiumClient.h"
 #include "ChromiumBrowser.h"
 #include "ResourceHandler.h"
@@ -8,15 +9,16 @@
 #include "cef_start.h"
 #include "include/cef_app.h"
 #include "include/cef_origin_whitelist.h"
-#ifdef OSX
+#ifdef OS_MAC
 #include "include/wrapper/cef_library_loader.h"
 #endif
 #include "cef_end.h"
 
+#include <iostream>
 #include <algorithm>
 #include <time.h>
 
-#ifdef _WIN32
+#ifdef OS_WINDOWS
 #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
@@ -34,17 +36,17 @@ public:
 		command_line->AppendSwitch( "enable-gpu" );
 		command_line->AppendSwitch( "disable-gpu-compositing" ); // NOTE: Enabling GPU Compositing will make OnAcceleratedPaint run instead of OnPaint (CEF must be patched or NOTHING will run!)
 		command_line->AppendSwitch( "disable-smooth-scrolling" );
-#ifdef _WIN32
+#ifdef OS_WINDOWS
 		command_line->AppendSwitch( "enable-begin-frame-scheduling" );
 #endif
 		command_line->AppendSwitch( "enable-system-flash" );
 
 		// This can interfere with posix signals and break Breakpad
-#ifdef POSIX
+#ifdef OS_LINUX
 		command_line->AppendSwitch( "disable-in-process-stack-traces" );
 #endif
 
-#ifdef OSX
+#ifdef OS_MAC
 		command_line->AppendSwitch( "use-mock-keychain" );
 #endif
 
@@ -79,7 +81,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 {
 	g_pHtmlResourceHandler = pResourceHandler;
 
-#ifdef OSX
+#ifdef OS_MAC
 	static CefScopedLibraryLoader library_loader;
 	if ( !library_loader.LoadInMain() )
 	{
@@ -87,7 +89,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	}
 #endif
 
-#ifdef POSIX
+#if defined( OS_LINUX ) || defined( OS_MAC )
 	// GMOD: GO - Chromium will replace Breakpad's signal handlers if we don't do this early
 	int argc = 2;
 	char arg1[] = "binary";
@@ -103,15 +105,17 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	settings.remote_debugging_port = 0;
 	settings.windowless_rendering_enabled = true;
-#if defined( _WIN32 ) && !defined( NDEBUG )
-	settings.no_sandbox = true;
-#else
+
+#ifdef CEF_USE_SANDBOX
 	settings.no_sandbox = false;
+#else
+	settings.no_sandbox = true;
 #endif
+
 	settings.command_line_args_disabled = true;
 	settings.log_severity = LOGSEVERITY_DEFAULT;
 
-#ifdef _WIN32
+#ifdef OS_WINDOWS
 	// Chromium will be sad if we don't resolve any NTFS junctions for it
 	// Is this really the only way Windows will let me do that?
 	auto hFile = CreateFile( strBaseDir.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL );
@@ -170,7 +174,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	CefString( &settings.locales_dir_path ).FromString( chromiumDir + "/locales" );
 
 	settings.multi_threaded_message_loop = true;
-#elif LINUX
+#elif OS_LINUX
 	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Linux; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 GMod/13" );
 
 #if defined(__x86_64__) || defined(_WIN64)
@@ -184,7 +188,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	CefString( &settings.locales_dir_path ).FromString( strBaseDir + "/bin/linux32/chromium/locales" );
 
 	settings.multi_threaded_message_loop = true;
-#elif OSX
+#elif OS_MAC
 	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Macintosh; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 GMod/13" );
 #else
 #error
@@ -193,7 +197,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	CefString( &settings.log_file ).FromString( strBaseDir + "/chromium.log" );
 
 	// Grab our Sandbox info from the game exe
-#if defined( _WIN32 ) && defined( NDEBUG )
+#if defined(OS_WINDOWS) && defined(CEF_USE_SANDBOX)
 	HMODULE pModule;
 
 	if ( !GetModuleHandleEx( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &pModule ) )
@@ -224,7 +228,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 		return false;
 	}
 
-#if defined( _WIN32 ) && defined( NDEBUG )
+#if defined(OS_WINDOWS) && defined(CEF_USE_SANDBOX)
 	DestroyCefSandboxInfo( sandbox_info );
 #endif
 
@@ -252,7 +256,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 		CefAddCrossOriginWhitelistEntry( "asset://html", "asset", "", true );
 	}
 
-#ifdef OSX
+#ifdef OS_MAC
 	CefDoMessageLoopWork();
 #endif
 
@@ -268,17 +272,18 @@ IHtmlClient* ChromiumSystem::CreateClient( IHtmlClientListener* listener )
 {
 	CefWindowInfo windowInfo;
 	windowInfo.SetAsWindowless( 0 );
-	// TODO: See ChromiumBrowser::OnAcceleratedPaint
+#ifdef OS_WINDOWS
 	//windowInfo.shared_texture_enabled = true;
+#endif
 
 	CefBrowserSettings browserSettings;
 	CefString( &browserSettings.default_encoding ).FromString( "UTF-8" );
 	browserSettings.windowless_frame_rate = 60;
 	browserSettings.javascript_access_clipboard = STATE_DISABLED;
 	browserSettings.javascript_close_windows = STATE_DISABLED;
-	//browserSettings.webgl = STATE_DISABLED;
+	browserSettings.webgl = STATE_ENABLED;
 
-	CefRefPtr<ChromiumBrowser> cefClient( new ChromiumBrowser );
+	CefRefPtr<ChromiumBrowser> cefClient( new ChromiumBrowser() );
 
 	// Queue the browser creation. It's async, but ChromiumBrowser will handle it all.
 	CefBrowserHost::CreateBrowser( windowInfo, cefClient, "", browserSettings, nullptr, nullptr );
@@ -301,7 +306,7 @@ void ChromiumSystem::Update()
 	m_RequestsLock.Release();
 
 	// macOS will want me
-#ifdef OSX
+#ifdef OS_MAC
 	CefDoMessageLoopWork();
 #endif
 

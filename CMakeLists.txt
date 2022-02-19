@@ -1,103 +1,77 @@
-if(WIN32)
-	# Required for MSVC_RUNTIME_LIBRARY
-	cmake_minimum_required(VERSION 3.15)
-	cmake_policy(SET CMP0091 NEW)
-else()
-	cmake_minimum_required(VERSION 3.19)
-endif()
 
-project(gmod-html LANGUAGES CXX)
-
-# We can only do release builds
-set(CMAKE_CONFIGURATION_TYPES Release Debug)
+cmake_minimum_required(VERSION 3.19)
+set(CMAKE_CONFIGURATION_TYPES Debug Release)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Match GMod and our prebuilt libraries
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+project(gmod_html)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out)
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/dist CACHE PATH "..." FORCE)
+set_property(GLOBAL PROPERTY OS_FOLDERS ON)
+
+set(CEF_VERSION "98.1.21+g9782362+chromium-98.0.4758.102")
+
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+  if("${PROJECT_ARCH}" STREQUAL "arm64")
+    set(CEF_PLATFORM "macosarm64")
+  else()
+    set(CEF_PLATFORM "macosx64")
+  endif()
+elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")  
+  if(CMAKE_SIZEOF_VOID_P MATCHES 8)
+    set(CEF_PLATFORM "linux64")
+  else()
+    set(CEF_PLATFORM "linux32")
+  endif()
+elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
+  if(CMAKE_SIZEOF_VOID_P MATCHES 8)
+    set(CEF_PLATFORM "windows64")
+  else()
+    set(CEF_PLATFORM "windows32")
+  endif()
 endif()
 
-if(WIN32)
-	if("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
-		set(GAME_BIN_DIR .)
-	else()
-		set(GAME_BIN_DIR win64)
-	endif()
-elseif(UNIX AND NOT APPLE)
-	set(GAME_BIN_DIR linux64)
-else()
-	message(FATAL_ERROR "No GAME_DIR definition")
-endif()
+set(CEF_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cef3/cef_binary_${CEF_VERSION}_${CEF_PLATFORM}")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CEF_ROOT}/cmake")
 
+find_package(CEF REQUIRED)
+add_subdirectory(thirdparty/glad EXCLUDE_FROM_ALL)
+add_subdirectory(thirdparty/imgui-1.74 EXCLUDE_FROM_ALL)
 
-# ImGui
-add_subdirectory(thirdparty/imgui-1.74)
-
-# glad
-add_subdirectory(thirdparty/glad)
-
-# GLFW
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(thirdparty/glfw-3.3.2)
+add_subdirectory(thirdparty/glfw-3.3.2 EXCLUDE_FROM_ALL)
 
-# Chromium Project
-if(WIN32)
-	if("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
-		set(CEF_PATH ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cef3/cef_binary_98.1.19+g57be9e2+chromium-98.0.4758.80_windows32)
-	else()
-		set(CEF_PATH ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cef3/cef_binary_98.1.19+g57be9e2+chromium-98.0.4758.80_windows64)
-	endif()
-elseif(UNIX AND NOT APPLE)
-	set(CEF_PATH ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cef3/cef_binary_98.1.19+g57be9e2+chromium-98.0.4758.80_linux64)
-	add_definitions(-DPOSIX -DLINUX)
+if(GEN_NINJA OR GEN_MAKEFILES)
+  set(CEF_TARGET_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/out/${CMAKE_BUILD_TYPE}")
 else()
-	message(FATAL_ERROR "No CEF_PATH")
+  set(CEF_TARGET_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/out/$<CONFIGURATION>")
 endif()
+set(CEF_TARGET_OUT_DIR ${CEF_TARGET_OUT_DIR}/bin/${CEF_PLATFORM})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CEF_TARGET_OUT_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CEF_TARGET_OUT_DIR})
 
-add_subdirectory(${CEF_PATH} EXCLUDE_FROM_ALL)
+add_subdirectory(${CEF_LIBCEF_DLL_WRAPPER_PATH} libcef_dll_wrapper EXCLUDE_FROM_ALL)
 
-# Chromium Import Lib
-add_library(libcef_imp SHARED IMPORTED)
+add_subdirectory(${CEF_ROOT}/tests/cefclient EXCLUDE_FROM_ALL)
+add_subdirectory(${CEF_ROOT}/tests/cefsimple EXCLUDE_FROM_ALL)
+add_subdirectory(${CEF_ROOT}/tests/gtest EXCLUDE_FROM_ALL)
+add_subdirectory(${CEF_ROOT}/tests/ceftests EXCLUDE_FROM_ALL)
 
-if(WIN32)
-	set_target_properties(libcef_imp PROPERTIES IMPORTED_LOCATION ${CEF_PATH}/Release/libcef.dll)
-	set_target_properties(libcef_imp PROPERTIES IMPORTED_IMPLIB ${CEF_PATH}/Release/libcef.lib)
-elseif(UNIX AND NOT APPLE)
-	set_target_properties(libcef_imp PROPERTIES IMPORTED_LOCATION ${CEF_PATH}/Release/libcef.so)
-else()
-	message(FATAL_ERROR "No libcef_imp import library set")
-endif()
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-# Chromium Sandbox (Not a library on Linux)
-if(WIN32 OR APPLE)
-	add_library(cef_sandbox STATIC IMPORTED)
-
-	if(WIN32)
-		set_target_properties(cef_sandbox PROPERTIES IMPORTED_LOCATION ${CEF_PATH}/Release/cef_sandbox.lib)
-	else()
-		message(FATAL_ERROR "No cef_sandbox library set")
-	endif()
-endif()
-
-# Our projects
 add_subdirectory(html)
+# NOTE: This can probably be removed. It would only need rebuilding if the html interface changes (and this is unlikely).
 add_subdirectory(html_stub)
 add_subdirectory(html_chromium)
 
-if(WIN32)
-	add_subdirectory(example_host)
-	add_subdirectory(gmod_launcher)
+if(OS_LINUX OR OS_MAC)
+  add_subdirectory(chromium_process)
+elseif(OS_WIN)
+  add_subdirectory(gmod_launcher)
 endif()
 
-if(UNIX)
-	add_subdirectory(html_chromium/chromium_process)
-endif()
+add_subdirectory(example_host EXCLUDE_FROM_ALL)
+
+PRINT_CEF_CONFIG()
