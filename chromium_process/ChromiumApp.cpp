@@ -192,7 +192,7 @@ void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, 
 	command_line->AppendSwitchWithValue( "autoplay-policy", "no-user-gesture-required" );
 
 	// Chromium 80 removed this but only sometimes.
-	// command_line->AppendSwitchWithValue( "enable-blink-features", "HTMLImports" );
+	command_line->AppendSwitchWithValue( "enable-blink-features", "HTMLImports" );
 
 	// Disable site isolation until we implement passing registered Lua functions between processes
 	command_line->AppendSwitch( "disable-site-isolation-trials" );
