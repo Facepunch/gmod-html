@@ -12,6 +12,7 @@
 #ifdef OS_MAC
 #include "include/wrapper/cef_library_loader.h"
 #endif
+#include "include/cef_version.h"
 #include "cef_end.h"
 
 #include <iostream>
@@ -116,6 +117,8 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	settings.log_severity = LOGSEVERITY_DEFAULT;
 
 #ifdef OS_WINDOWS
+	std::string platform = "Windows NT";
+
 	// Chromium will be sad if we don't resolve any NTFS junctions for it
 	// Is this really the only way Windows will let me do that?
 	auto hFile = CreateFile( strBaseDir.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL );
@@ -167,15 +170,13 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 		chromiumDir = targetPath.string();
 	}
 
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Windows NT; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 GMod/13" );
-
 	// GMOD: GO - We use the same resources with 32-bit and 64-bit builds, so always use the 32-bit bin path for them
 	CefString( &settings.resources_dir_path ).FromString( chromiumDir );
 	CefString( &settings.locales_dir_path ).FromString( chromiumDir + "/locales" );
 
 	settings.multi_threaded_message_loop = true;
 #elif OS_LINUX
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Linux; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 GMod/13" );
+	std::string platform = "Linux";
 
 #if defined(__x86_64__) || defined(_WIN64)
 	CefString( &settings.browser_subprocess_path ).FromString( strBaseDir + "/bin/linux64/chromium_process" );
@@ -189,10 +190,13 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	settings.multi_threaded_message_loop = true;
 #elif OS_MAC
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Macintosh; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 GMod/13" );
+	std::string platform = "Machintosh";
 #else
 #error
 #endif
+
+	std::string chrome_version = std::to_string(CHROME_VERSION_MAJOR) + "." + std::to_string(CHROME_VERSION_MINOR) + "." + std::to_string(CHROME_VERSION_BUILD) + "." + std::to_string(CHROME_VERSION_PATCH);
+	CefString(&settings.user_agent).FromString("Mozilla/5.0 (" + platform + "; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" + chrome_version + " Safari/537.36 GMod/13");
 
 	CefString( &settings.log_file ).FromString( strBaseDir + "/chromium.log" );
 
