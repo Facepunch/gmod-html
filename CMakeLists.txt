@@ -63,6 +63,8 @@ add_subdirectory(${CEF_ROOT}/tests/ceftests EXCLUDE_FROM_ALL)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 add_subdirectory(html)
 add_subdirectory(html_stub EXCLUDE_FROM_ALL)
 add_subdirectory(html_chromium)

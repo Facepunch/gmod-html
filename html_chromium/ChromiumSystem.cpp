@@ -200,7 +200,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	CefString( &settings.log_file ).FromString( strBaseDir + "/chromium.log" );
 
-	// Grab our Sandbox info from the game exe
+	// Grab our Sandbox info from the "game" exe
 #if defined(OS_WINDOWS) && defined(CEF_USE_SANDBOX)
 	HMODULE pModule;
 
