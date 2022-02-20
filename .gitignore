@@ -4,6 +4,9 @@
 /build_x64
 /build_x86
 
+# Distribution directories
+/dist
+
 # Dependencies that are downloaded/installed separately
 /thirdparty/cef3/**
 !/thirdparty/cef3/README.txt

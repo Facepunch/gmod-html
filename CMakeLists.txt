@@ -44,9 +44,11 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(thirdparty/glfw-3.3.2 EXCLUDE_FROM_ALL)
 
 if(GEN_NINJA OR GEN_MAKEFILES)
-  set(CEF_TARGET_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/out/${CMAKE_BUILD_TYPE}")
+  set(CEF_TARGET_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/out/${CMAKE_BUILD_TYPE}/${CEF_PLATFORM}")
+  set(INSTALL_OUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/dist/${CEF_PLATFORM}-${CMAKE_BUILD_TYPE}")
 else()
-  set(CEF_TARGET_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/out/$<CONFIGURATION>")
+  set(CEF_TARGET_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/out/$<CONFIGURATION>/${CEF_PLATFORM}")
+  set(INSTALL_OUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/dist/${CEF_PLATFORM}-$<CONFIGURATION>")
 endif()
 set(CEF_TARGET_OUT_DIR ${CEF_TARGET_OUT_DIR}/bin/${CEF_PLATFORM})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CEF_TARGET_OUT_DIR})
@@ -62,16 +64,9 @@ add_subdirectory(${CEF_ROOT}/tests/ceftests EXCLUDE_FROM_ALL)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(html)
-# NOTE: This can probably be removed. It would only need rebuilding if the html interface changes (and this is unlikely).
-add_subdirectory(html_stub)
+add_subdirectory(html_stub EXCLUDE_FROM_ALL)
 add_subdirectory(html_chromium)
-
-if(OS_LINUX OR OS_MAC)
-  add_subdirectory(chromium_process)
-elseif(OS_WIN)
-  add_subdirectory(gmod_launcher)
-endif()
-
+add_subdirectory(chromium_process)
 add_subdirectory(example_host EXCLUDE_FROM_ALL)
 
 PRINT_CEF_CONFIG()

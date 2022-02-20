@@ -9,32 +9,75 @@ set(SOURCES_LINUX Linux.cpp)
 set(SOURCES_MAC macOS.cpp)
 set(SOURCES_WINDOWS Windows.cpp)
 
+set(RESOURCES_WINDOWS resources/win/gmod_icon.rc)
+
 APPEND_PLATFORM_SOURCES(SOURCES)
+APPEND_PLATFORM_SOURCES(RESOURCES)
 
 if(OS_LINUX OR OS_WINDOWS)
   ADD_LOGICAL_TARGET("libcef_lib" "${CEF_LIB_DEBUG}" "${CEF_LIB_RELEASE}")
 
-  add_executable(${TARGET} ${SOURCES})
+  if(OS_LINUX)
+    add_executable(${TARGET} ${SOURCES})
+  else()
+    add_executable(${TARGET} WIN32 ${SOURCES} ${RESOURCES})
+  endif()
   SET_EXECUTABLE_TARGET_PROPERTIES(${TARGET})
   add_dependencies(${TARGET} libcef_dll_wrapper)
 
   target_link_libraries(${TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS})
 
   if(OS_LINUX)
-      set_target_properties(${TARGET} PROPERTIES INSTALL_RPATH "$ORIGIN")
-      set_target_properties(${TARGET} PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
-  elseif(USE_SANDBOX)
-    ADD_LOGICAL_TARGET("cef_sandbox_lib" "${CEF_SANDBOX_LIB_DEBUG}" "${CEF_SANDBOX_LIB_RELEASE}")
-    target_link_libraries(${TARGET} cef_sandbox_lib ${CEF_SANDBOX_STANDARD_LIBS})
+    install(TARGETS ${TARGET} DESTINATION "${INSTALL_OUT_DIR}/GarrysMod/bin/${CEF_PLATFORM}")
+    set_target_properties(${TARGET} PROPERTIES INSTALL_RPATH "$ORIGIN")
+    set_target_properties(${TARGET} PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
+  else()
+    if(CMAKE_SIZEOF_VOID_P MATCHES 8)
+      install(TARGETS ${TARGET} DESTINATION "${INSTALL_OUT_DIR}/GarrysMod/bin/win64")
+    else()
+      install(TARGETS ${TARGET} DESTINATION "${INSTALL_OUT_DIR}/GarrysMod/bin")
+    endif()
+    
+    set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME "gmod_launcher")
+    target_link_libraries(${TARGET}
+      shlwapi
+      winmm
+      wsock32
+      WS2_32
+      comctl32
+      rpcrt4
+      version
+      DbgHelp
+      Psapi
+      wbemuuid
+      OleAut32
+      SetupAPI
+      Propsys
+      Cfgmgr32
+      PowrProf
+      Delayimp.lib)
+
+    if(USE_SANDBOX)
+      ADD_LOGICAL_TARGET("cef_sandbox_lib" "${CEF_SANDBOX_LIB_DEBUG}" "${CEF_SANDBOX_LIB_RELEASE}")
+      target_link_libraries(${TARGET} cef_sandbox_lib ${CEF_SANDBOX_STANDARD_LIBS})
+    endif()
   endif()
 
+  # FIXME: These should be moved to their own target
   LIST(REMOVE_ITEM CEF_RESOURCE_FILES "icudtl.dat")
-  COPY_FILES(${TARGET} "icudtl.dat" "${CEF_RESOURCE_DIR}" "${CEF_TARGET_OUT_DIR}")
-  COPY_FILES(${TARGET} "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${CEF_TARGET_OUT_DIR}")
   if(OS_LINUX)
-    COPY_FILES(${TARGET} "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${CEF_TARGET_OUT_DIR}/../linux32/chromium")
+    COPY_FILES(${TARGET} "icudtl.dat" "${CEF_RESOURCE_DIR}" "${INSTALL_OUT_DIR}/GarrysMod/bin/${CEF_PLATFORM}")
+    COPY_FILES(${TARGET} "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${INSTALL_OUT_DIR}/GarrysMod/bin/${CEF_PLATFORM}")
+    COPY_FILES(${TARGET} "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${INSTALL_OUT_DIR}/GarrysMod/bin/linux32/chromium")
   else()
-    COPY_FILES(${TARGET} "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${CEF_TARGET_OUT_DIR}/chromium")
+    if(CMAKE_SIZEOF_VOID_P MATCHES 8)
+      COPY_FILES(${TARGET} "icudtl.dat" "${CEF_RESOURCE_DIR}" "${INSTALL_OUT_DIR}/GarrysMod/bin/win32")
+      COPY_FILES(${TARGET} "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${INSTALL_OUT_DIR}/GarrysMod/bin/win64")
+    else()
+      COPY_FILES(${TARGET} "icudtl.dat" "${CEF_RESOURCE_DIR}" "${INSTALL_OUT_DIR}/GarrysMod/bin")
+      COPY_FILES(${TARGET} "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${INSTALL_OUT_DIR}/GarrysMod/bin")
+    endif()
+    COPY_FILES(${TARGET} "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${INSTALL_OUT_DIR}/GarrysMod/bin/chromium")
   endif()
 else()
   set(HELPER_TARGET "gmod_Helper")
@@ -50,7 +93,7 @@ else()
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CEF_BINARY_DIR}/Chromium Embedded Framework.framework"
-            "${CEF_TARGET_OUT_DIR}/GarrysMod_Signed.app/Contents/Frameworks/Chromium Embedded Framework.framework"
+            "${INSTALL_OUT_DIR}/GarrysMod_Signed.app/Contents/Frameworks/Chromium Embedded Framework.framework"
     VERBATIM)
 
   foreach(_suffix_list ${CEF_HELPER_APP_SUFFIXES})
@@ -75,8 +118,9 @@ else()
     target_link_libraries(${_helper_target} libcef_dll_wrapper ${CEF_STANDARD_LIBS})
     set_target_properties(${_helper_target} PROPERTIES
       MACOSX_BUNDLE_INFO_PLIST ${_helper_info_plist}
-      OUTPUT_NAME ${_helper_output_name}
-      RUNTIME_OUTPUT_DIRECTORY "${CEF_TARGET_OUT_DIR}/GarrysMod_Signed.app/Contents/Frameworks")
+      OUTPUT_NAME ${_helper_output_name})
+    
+    install(TARGETS ${_helper_target} DESTINATION ${INSTALL_OUT_DIR}/GarrysMod_Signed.app/Contents/Frameworks)
     
     if(USE_SANDBOX)
       target_link_libraries(${_helper_target} cef_sandbox_lib)
