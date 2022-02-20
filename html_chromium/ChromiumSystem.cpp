@@ -9,7 +9,7 @@
 #include "cef_start.h"
 #include "include/cef_app.h"
 #include "include/cef_origin_whitelist.h"
-#ifdef OS_MAC
+#ifdef __APPLE__
 #include "include/wrapper/cef_library_loader.h"
 #endif
 #include "include/cef_version.h"
@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <time.h>
 
-#ifdef OS_WINDOWS
+#ifdef _WIN32
 #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
@@ -37,17 +37,17 @@ public:
 		command_line->AppendSwitch( "enable-gpu" );
 		command_line->AppendSwitch( "disable-gpu-compositing" ); // NOTE: Enabling GPU Compositing will make OnAcceleratedPaint run instead of OnPaint (CEF must be patched or NOTHING will run!)
 		command_line->AppendSwitch( "disable-smooth-scrolling" );
-#ifdef OS_WINDOWS
+#ifdef _WIN32
 		command_line->AppendSwitch( "enable-begin-frame-scheduling" );
 #endif
 		command_line->AppendSwitch( "enable-system-flash" );
 
 		// This can interfere with posix signals and break Breakpad
-#ifdef OS_LINUX
+#ifdef __linux__
 		command_line->AppendSwitch( "disable-in-process-stack-traces" );
 #endif
 
-#ifdef OS_MAC
+#ifdef __APPLE__
 		command_line->AppendSwitch( "use-mock-keychain" );
 #endif
 
@@ -82,7 +82,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 {
 	g_pHtmlResourceHandler = pResourceHandler;
 
-#ifdef OS_MAC
+#ifdef __APPLE__
 	static CefScopedLibraryLoader library_loader;
 	if ( !library_loader.LoadInMain() )
 	{
@@ -90,7 +90,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	}
 #endif
 
-#if defined( OS_LINUX ) || defined( OS_MAC )
+#if defined( __linux__ ) || defined( __APPLE__ )
 	// GMOD: GO - Chromium will replace Breakpad's signal handlers if we don't do this early
 	int argc = 2;
 	char arg1[] = "binary";
@@ -116,7 +116,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	settings.command_line_args_disabled = true;
 	settings.log_severity = LOGSEVERITY_DEFAULT;
 
-#ifdef OS_WINDOWS
+#ifdef _WIN32
 	std::string platform = "Windows NT";
 
 	// Chromium will be sad if we don't resolve any NTFS junctions for it
@@ -175,7 +175,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	CefString( &settings.locales_dir_path ).FromString( chromiumDir + "/locales" );
 
 	settings.multi_threaded_message_loop = true;
-#elif OS_LINUX
+#elif __linux__
 	std::string platform = "Linux";
 
 #if defined(__x86_64__) || defined(_WIN64)
@@ -189,7 +189,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	CefString( &settings.locales_dir_path ).FromString( strBaseDir + "/bin/linux32/chromium/locales" );
 
 	settings.multi_threaded_message_loop = true;
-#elif OS_MAC
+#elif __APPLE__
 	std::string platform = "Machintosh";
 #else
 #error
@@ -201,7 +201,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	CefString( &settings.log_file ).FromString( strBaseDir + "/chromium.log" );
 
 	// Grab our Sandbox info from the "game" exe
-#if defined(OS_WINDOWS) && defined(CEF_USE_SANDBOX)
+#if defined(_WIN32) && defined(CEF_USE_SANDBOX)
 	HMODULE pModule;
 
 	if ( !GetModuleHandleEx( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &pModule ) )
@@ -232,7 +232,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 		return false;
 	}
 
-#if defined(OS_WINDOWS) && defined(CEF_USE_SANDBOX)
+#if defined(_WIN32) && defined(CEF_USE_SANDBOX)
 	DestroyCefSandboxInfo( sandbox_info );
 #endif
 
@@ -260,7 +260,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 		CefAddCrossOriginWhitelistEntry( "asset://html", "asset", "", true );
 	}
 
-#ifdef OS_MAC
+#ifdef __APPLE__
 	CefDoMessageLoopWork();
 #endif
 
@@ -276,7 +276,7 @@ IHtmlClient* ChromiumSystem::CreateClient( IHtmlClientListener* listener )
 {
 	CefWindowInfo windowInfo;
 	windowInfo.SetAsWindowless( 0 );
-#ifdef OS_WINDOWS
+#ifdef _WIN32
 	//windowInfo.shared_texture_enabled = true;
 #endif
 
@@ -310,7 +310,7 @@ void ChromiumSystem::Update()
 	m_RequestsLock.Release();
 
 	// macOS will want me
-#ifdef OS_MAC
+#ifdef __APPLE__
 	CefDoMessageLoopWork();
 #endif
 
