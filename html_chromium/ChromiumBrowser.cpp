@@ -10,6 +10,18 @@
 #include "include/cef_parser.h"
 #include "cef_end.h"
 
+#ifdef _WIN32
+	#include <shellapi.h>
+#endif
+#ifdef __linux__
+	#include <unistd.h>
+	#include <sys/wait.h>
+#endif
+#ifdef __APPLE__
+	#include <CoreFoundation/CFBundle.h>
+	#include <ApplicationServices/ApplicationServices.h>
+#endif
+
 static bool CefValueToJSValue( JSValue& outValue, CefRefPtr<CefValue> inValue, int depth = 0 )
 {
 	if ( depth > 16 )
@@ -207,6 +219,9 @@ static int GetModifiers( const IHtmlClient::EventModifiers modifiers )
 	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::RightMouse ) )
 		chromiumModifiers |= EVENTFLAG_RIGHT_MOUSE_BUTTON;
 
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::OSX_Cmd ) )
+		chromiumModifiers |= EVENTFLAG_COMMAND_DOWN;
+	
 	return chromiumModifiers;
 }
 
@@ -286,7 +301,7 @@ void ChromiumBrowser::SendKeyEvent( IHtmlClient::KeyEvent keyEvent )
 			chromiumKeyEvent.type = KEYEVENT_CHAR;
 			chromiumKeyEvent.character = static_cast<char16>( keyEvent.key_char );
 			chromiumKeyEvent.unmodified_character = static_cast<char16>( keyEvent.key_char );
-#ifdef OSX
+#ifdef __APPLE__
 			chromiumKeyEvent.windows_key_code = 0;
 			chromiumKeyEvent.native_key_code = keyEvent.native_key_code;
 #else
@@ -828,23 +843,29 @@ bool ChromiumBrowser::OnBeforeBrowse( CefRefPtr<CefBrowser>,
 #ifndef __APPLE__
 	if ( m_OpenLinksExternally )
 	{
-#if defined( _WIN32 )
-		ShellExecute( NULL, "open", request->GetURL().ToString().c_str(), NULL, NULL, SW_SHOWNORMAL );
-#elif defined( __linux__ )
-		std::string strUrl = request->GetURL().ToString();
-		pid_t pid;
-		const char* args[3];
-		args[0] = "/usr/bin/xdg-open";
-		args[1] = strUrl.c_str();
-		args[2] = NULL;
-		pid = fork();
+		std::string url = request->GetURL().ToString();
 
-		if ( pid == 0 )
-		{
-			execvp( args[0], (char* const*) args );
+#if defined(_WIN32)
+		ShellExecute(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#elif defined(__linux__)
+		pid_t pid = fork();
+		if (pid == 0) {
+			execlp("xdg-open", "xdg-open", url.c_str(), NULL);
+			exit(0);
+		} else if (pid < 0) {
+			LOG(ERROR) << "Failed to open URL in external browser: " << url;
+		} else {
+			// TODO: Should we wait for the child process to finish?
+			waitpid(pid, NULL, 0);
+		}
+#elif defined(__APPLE__)
+		CFURLRef urlRef = CFURLCreateWithBytes(NULL, (const UInt8 *)url.c_str(), url.length(), kCFStringEncodingUTF8, NULL);
+		if (urlRef) {
+			LSOpenCFURLRef(urlRef, NULL);
+			CFRelease(urlRef);
 		}
 #else
-#error
+#error Unsupported platform
 #endif
 		return true;
 	}
