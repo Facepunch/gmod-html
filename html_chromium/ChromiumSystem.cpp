@@ -190,7 +190,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	settings.multi_threaded_message_loop = true;
 #elif __APPLE__
-	std::string platform = "Machintosh";
+	std::string platform = "Macintosh";
 #else
 #error
 #endif
