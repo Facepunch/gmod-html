@@ -106,9 +106,10 @@ static bool CefValueToV8Value( CefRefPtr<CefV8Value>& outValue, const CefRefPtr<
 		case VTYPE_LIST:
 		{
 			auto inList = inValue->GetList();
-			outValue = CefV8Value::CreateArray( inList->GetSize() );
+			int size = static_cast<int>(inList->GetSize());
+			outValue = CefV8Value::CreateArray(size);
 
-			for ( size_t i = 0; i < inList->GetSize(); i++ )
+			for ( int i = 0; i < size; i++ )
 			{
 				CefRefPtr<CefV8Value> entry;
 

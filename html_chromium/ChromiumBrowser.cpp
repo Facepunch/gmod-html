@@ -846,7 +846,7 @@ bool ChromiumBrowser::OnBeforeBrowse( CefRefPtr<CefBrowser>,
 		std::string url = request->GetURL().ToString();
 
 #if defined(_WIN32)
-		ShellExecute(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
+		ShellExecuteA(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
 #elif defined(__linux__)
 		pid_t pid = fork();
 		if (pid == 0) {

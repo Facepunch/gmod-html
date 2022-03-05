@@ -121,13 +121,13 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	// Chromium will be sad if we don't resolve any NTFS junctions for it
 	// Is this really the only way Windows will let me do that?
-	auto hFile = CreateFile( strBaseDir.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL );
+	auto hFile = CreateFileA( strBaseDir.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL );
 	bool useTempDir = false;
 
 	if ( hFile != INVALID_HANDLE_VALUE )
 	{
 		char pathBuf[MAX_PATH] = { 0 };
-		if ( GetFinalPathNameByHandle( hFile, pathBuf, sizeof( pathBuf ), VOLUME_NAME_DOS ) )
+		if ( GetFinalPathNameByHandleA( hFile, pathBuf, sizeof( pathBuf ), VOLUME_NAME_DOS ) )
 		{
 			// If it's a network drive, we can't use it
 			if ( strstr( pathBuf, "\\\\?\\UNC" ) == pathBuf )
