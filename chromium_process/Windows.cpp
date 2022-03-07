@@ -61,7 +61,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	std::string::size_type last_slash = std::string(executable_path).find_last_of("\\/");
 	std::string executable_dir = std::string(executable_path).substr(0, last_slash);
 
-#ifdef ENVIORNMENT64
+#ifdef ENVIRONMENT64
 	executable_dir += "\\..\\..";
 #else
 	executable_dir += "\\..";
