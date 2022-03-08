@@ -52,7 +52,18 @@ make && make install
 This will place a complete build into the `build/out` folder by default.
 
 ### macOS
-TODO: Still working on this.
+#### Requirements
+- A version of GCC/G++ or Clang/Clang++ with C++11 support
+- CMake 3.19 or newer
+
+#### Compiling
+```mkdir build
+cd build
+cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Release ..
+make && make install
+```
+
+This will place a complete build into the `dist` folder by default.
 
 ## TODO
 - Improve the CMake files. We don't use them for GMod builds so they're a bit wonky.
