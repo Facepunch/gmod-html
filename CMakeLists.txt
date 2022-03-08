@@ -8,7 +8,7 @@ project(gmod_html)
 
 set_property(GLOBAL PROPERTY OS_FOLDERS ON)
 
-set(CEF_VERSION "98.2.0+g78c653a+chromium-98.0.4758.102")
+set(CEF_VERSION "98.2.1+g29d6e22+chromium-98.0.4758.109")
 
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
   if("${PROJECT_ARCH}" STREQUAL "arm64")
@@ -16,7 +16,7 @@ if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
   else()
     set(CEF_PLATFORM "macosx64")
   endif()
-elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")  
+elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
   if(CMAKE_SIZEOF_VOID_P MATCHES 8)
     set(CEF_PLATFORM "linux64")
   else()
