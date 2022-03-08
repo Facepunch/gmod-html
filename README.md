@@ -57,7 +57,8 @@ This will place a complete build into the `build/out` folder by default.
 - CMake 3.19 or newer
 
 #### Compiling
-```mkdir build
+```sh
+mkdir build
 cd build
 cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Release ..
 make && make install
