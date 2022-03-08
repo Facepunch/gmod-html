@@ -53,18 +53,18 @@ This will place a complete build into the `build/out` folder by default.
 
 ### macOS
 #### Requirements
-- A version of GCC/G++ or Clang/Clang++ with C++11 support
+- Ninja
 - CMake 3.19 or newer
 
 #### Compiling
 ```sh
 mkdir build
 cd build
-cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Release ..
-make && make install
+cmake -G Ninja ..
+ninja
 ```
 
-This will place a complete build into the `dist` folder by default.
+This will place a complete build into the `build/out` folder by default.
 
 ## TODO
 - Improve the CMake files. We don't use them for GMod builds so they're a bit wonky.
