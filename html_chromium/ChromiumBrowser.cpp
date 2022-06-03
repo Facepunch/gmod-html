@@ -929,7 +929,6 @@ bool ChromiumBrowser::OnFileDialog( CefRefPtr<CefBrowser>,
 	const CefString&,
 	const CefString&,
 	const std::vector<CefString>&,
-	int,
 	CefRefPtr<CefFileDialogCallback> callback )
 {
 	callback->Cancel();

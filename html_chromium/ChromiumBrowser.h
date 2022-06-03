@@ -161,7 +161,6 @@ public:
 		const CefString&,
 		const CefString&,
 		const std::vector<CefString>&,
-		int,
 		CefRefPtr<CefFileDialogCallback> callback ) override;
 
 	//
