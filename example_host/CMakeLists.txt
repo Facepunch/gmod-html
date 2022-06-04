@@ -18,6 +18,6 @@ target_compile_definitions(${TARGET} PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLAD)
 target_link_libraries(${TARGET} glfw glad imgui html)
 
 if(OS_LINUX)
-    set_target_properties(${TARGET} PROPERTIES INSTALL_RPATH "$ORIGIN")
-    set_target_properties(${TARGET} PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
+	set_target_properties(${TARGET} PROPERTIES INSTALL_RPATH "$ORIGIN")
+	set_target_properties(${TARGET} PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
 endif()

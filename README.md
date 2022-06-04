@@ -11,7 +11,7 @@ You'll probably want the **Minimal Distribution** unless you need to debug with 
 ## Currently supported CEF version
 The current version of CEF that's supported by this library is:
 
-- **98.2.1+g29d6e22+chromium-98.0.4758.109**
+- **102.0.9+g1c5e658+chromium-102.0.5005.63**
 
 This is not the only version that could be supported, but it's the version that's currently configured and tested to work.
 
@@ -49,7 +49,7 @@ cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Release ..
 make && make install
 ```
 
-This will place a complete build into the `build/out` folder by default.
+This will place a complete build into the `dist` folder by default.
 
 ### macOS
 #### Requirements
@@ -64,7 +64,7 @@ cmake -G Ninja ..
 ninja
 ```
 
-This will place a complete build into the `build/out` folder by default.
+This will place a complete build into the `dist` folder by default.
 
 ## TODO
 - Improve the CMake files. We don't use them for GMod builds so they're a bit wonky.

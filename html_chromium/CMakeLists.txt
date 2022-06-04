@@ -19,9 +19,9 @@ set(SOURCES
 	ResourceHandler.h)
 
 if(OS_LINUX OR OS_WINDOWS)
-  ADD_LOGICAL_TARGET("libcef_lib" "${CEF_LIB_DEBUG}" "${CEF_LIB_RELEASE}")
+	ADD_LOGICAL_TARGET("libcef_lib" "${CEF_LIB_DEBUG}" "${CEF_LIB_RELEASE}")
 endif()
-	
+
 add_library(${TARGET} SHARED ${SOURCES})
 SET_LIBRARY_TARGET_PROPERTIES(${TARGET})
 add_dependencies(${TARGET} html libcef_dll_wrapper)
@@ -33,8 +33,8 @@ else()
 endif()
 
 if(OS_WINDOWS AND USE_SANDBOX)
-  ADD_LOGICAL_TARGET("cef_sandbox_lib" "${CEF_SANDBOX_LIB_DEBUG}" "${CEF_SANDBOX_LIB_RELEASE}")
-  target_link_libraries(${TARGET} cef_sandbox_lib ${CEF_SANDBOX_STANDARD_LIBS})
+	ADD_LOGICAL_TARGET("cef_sandbox_lib" "${CEF_SANDBOX_LIB_DEBUG}" "${CEF_SANDBOX_LIB_RELEASE}")
+	target_link_libraries(${TARGET} cef_sandbox_lib ${CEF_SANDBOX_STANDARD_LIBS})
 endif()
 
 set_target_properties(${TARGET} PROPERTIES PREFIX "")
