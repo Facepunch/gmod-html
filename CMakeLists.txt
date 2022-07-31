@@ -8,7 +8,7 @@ project(gmod_html)
 
 set_property(GLOBAL PROPERTY OS_FOLDERS ON)
 
-set(CEF_VERSION "102.0.9+g1c5e658+chromium-102.0.5005.63")
+set(CEF_VERSION "104.4.15+g12fbff8+chromium-104.0.5112.65")
 
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
   if("${PROJECT_ARCH}" STREQUAL "arm64")
