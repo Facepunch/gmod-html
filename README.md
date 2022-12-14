@@ -11,7 +11,7 @@ You'll probably want the **Minimal Distribution** unless you need to debug with 
 ## Currently supported CEF version
 The current version of CEF that's supported by this library is:
 
-- **104.4.15+g12fbff8+chromium-104.0.5112.65**
+- **108.4.12+g2e23ced+chromium-108.0.5359.71**
 
 This is not the only version that could be supported, but it's the version that's currently configured and tested to work.
 
@@ -61,14 +61,10 @@ This will place a complete build into the `dist` folder by default.
 mkdir build
 cd build
 cmake -G Ninja ..
-ninja
+ninja && ninja install
 ```
 
 This will place a complete build into the `dist` folder by default.
 
 ## TODO
-- Improve the CMake files. We don't use them for GMod builds so they're a bit wonky.
-- Get the example_host into workable condition. It's disabled at the moment
-- Cleanup. Everything is quite messy.
-- macOS. These builds require quite a few unique things so they're not handled by the CMake scripts at all at the moment. It's still technically possible to get the builds working, though.
 - Dynamic loading of the HTML implementation. Atm we just use dylib() or LoadLibrary() in each host which is kind of lame. It'd be nice to simplify it.
