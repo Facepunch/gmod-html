@@ -39,6 +39,8 @@ public:
 		command_line->AppendSwitch( "disable-smooth-scrolling" );
 #ifdef _WIN32
 		command_line->AppendSwitch( "enable-begin-frame-scheduling" );
+		// TODO: WINE/Proton support?
+		//command_line->AppendSwitch( "no-sandbox" );
 #endif
 		command_line->AppendSwitch( "enable-system-flash" );
 

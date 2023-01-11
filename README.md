@@ -6,12 +6,12 @@ To work with this project you will need a build of the Chromium Embedded Framewo
 
 https://cef-builds.spotifycdn.com/index.html
 
-You'll probably want the **Minimal Distribution** unless you need to debug with symbols or something. These belong in the `./thirdparty/cef3/` directory (after extraction.) The paths are currently hardcoded into the root `CMakelists.txt` file.
+Everything you need is in the **Standard Distribution**. If you need to debug the CEF part, grab the Symbols too. The extracted binary folder belongs in the `./thirdparty/cef3/` directory. The paths are currently hardcoded into the root `CMakelists.txt` file.
 
 ## Currently supported CEF version
 The current version of CEF that's supported by this library is:
 
-- **108.4.12+g2e23ced+chromium-108.0.5359.71**
+- **106.1.1+g5891c70+chromium-106.0.5249.119**
 
 This is not the only version that could be supported, but it's the version that's currently configured and tested to work.
 
