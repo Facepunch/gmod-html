@@ -56,6 +56,13 @@ bool ResourceHandler::ProcessRequest( CefRefPtr<CefRequest> request, CefRefPtr<C
 		return false;
 
 	auto pathEncoded = CefString( &urlParts.path );
+	std::string pathEncodedStr = pathEncoded.ToString();
+
+	// Path-traversal mitigation
+	// TODO: This should really be implemented in GMod itself!
+	if (pathEncodedStr[2] == ':' || pathEncodedStr.rfind("//", 0) == 0) {
+		return false;
+	}
 
 	m_Host = CefString( &urlParts.host ).ToString();
 	m_Path = CefURIDecode( pathEncoded, true, (cef_uri_unescape_rule_t) ( UU_SPACES | UU_URL_SPECIAL_CHARS_EXCEPT_PATH_SEPARATORS ) ).ToString();
