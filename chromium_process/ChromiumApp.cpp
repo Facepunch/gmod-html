@@ -198,7 +198,7 @@ void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, 
 	command_line->AppendSwitchWithValue( "enable-blink-features", "HTMLImports" );
 
 	// Disable site isolation until we implement passing registered Lua functions between processes
-	command_line->AppendSwitch( "disable-site-isolation-trials" );
+	//command_line->AppendSwitch( "disable-site-isolation-trials" );
 }
 
 void ChromiumApp::OnRegisterCustomSchemes( CefRawPtr<CefSchemeRegistrar> registrar )
