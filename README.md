@@ -11,27 +11,27 @@ Everything you need is in the **Standard Distribution**. If you need to debug th
 ## Currently supported CEF version
 The current version of CEF that's supported by this library is:
 
-- **106.1.1+g5891c70+chromium-106.0.5249.119**
+- **114.2.10+g398e3c3+chromium-114.0.5735.110**
 
 This is not the only version that could be supported, but it's the version that's currently configured and tested to work.
 
 ## Getting started
 ### Windows
 #### Requirements
-- Visual Studio 2019
-- CMake 3.15 or newer
+- Visual Studio 2022
+- CMake 3.19 or newer
 #### Generating Visual Studio Solution
 ##### x86
 ```bat
 mkdir build_x86
 cd build_x86
-cmake -G "Visual Studio 16 2019" -A Win32 ..
+cmake -G "Visual Studio 17 2022" -A Win32 ..
 ```
 #### x86-64
 ```bat
 mkdir build_x64
 cd build_x64
-cmake -G "Visual Studio 16 2019" -A x64 ..
+cmake -G "Visual Studio 17 2022" -A x64 ..
 ```
 
 After running either of these sets of commands, you can enter your created directory and open the `gmod-html.sln` solution in Visual Studio. Compiling the `INSTALL` project will place a complete build into the `<your_build_dir>/out` folder by default.

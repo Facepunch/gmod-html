@@ -38,7 +38,6 @@ using FuncLauncherMain = int (*)(HINSTANCE, HINSTANCE, LPSTR, int);
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow) {
 	// Check if "--type=" is in the command arguments. If it is, we are a chromium subprocess.
 	if (strstr(lpCmdLine, "--type=")) {
-		CefEnableHighDPISupport();
 		void* sandbox_info = nullptr;
 
 #ifdef CEF_USE_SANDBOX
