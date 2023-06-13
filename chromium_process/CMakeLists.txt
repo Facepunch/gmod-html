@@ -7,7 +7,12 @@ set(RESOURCES )
 
 set(SOURCES_LINUX Linux.cpp)
 set(SOURCES_MAC macOS.cpp)
-set(SOURCES_WINDOWS Windows.cpp)
+
+if(CMAKE_SIZEOF_VOID_P MATCHES 8)
+	set(SOURCES_WINDOWS Windows.cpp)
+else()
+	set(SOURCES_WINDOWS Windows32Bit.cpp)
+endif()
 
 set(RESOURCES_WINDOWS resources/win/gmod_icon.rc)
 
