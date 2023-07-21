@@ -41,11 +41,6 @@ public:
 		command_line->AppendSwitch( "enable-begin-frame-scheduling" );
 		// TODO: WINE/Proton support?
 		//command_line->AppendSwitch( "no-sandbox" );
-
-        // Disables DXVA acceleration, which should already be disabled but CEF seems to be
-        // re-enabling (see https://chromium-review.googlesource.com/c/chromium/src/+/4179889)
-        // This allows Proton/Wine to run video, since msvproc.dll doesn't exist in Wine
-        command_line->AppendSwitchWithValue( "disable-features", "DXVAVideoDecoding" );
 #endif
 		command_line->AppendSwitch( "enable-system-flash" );
 
@@ -59,7 +54,8 @@ public:
 #endif
 
 		// https://bitbucket.org/chromiumembedded/cef/issues/2400
-		command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents,HardwareMediaKeyHandling" );
+        // DXVAVideoDecoding must be disabled for Proton/Wine
+		command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents,HardwareMediaKeyHandling,DXVAVideoDecoding" );
 
 		// Auto-play media
 		command_line->AppendSwitchWithValue( "autoplay-policy", "no-user-gesture-required" );
