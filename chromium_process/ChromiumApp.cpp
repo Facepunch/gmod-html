@@ -189,7 +189,7 @@ void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, 
 #endif
 
 	// https://bitbucket.org/chromiumembedded/cef/issues/2400
-    // DXVAVideoDecoding must be disabled for Proton/Wine
+	// DXVAVideoDecoding must be disabled for Proton/Wine
 	command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents,HardwareMediaKeyHandling,DXVAVideoDecoding" );
 
 	// Auto-play media
@@ -200,6 +200,9 @@ void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, 
 
 	// Disable site isolation until we implement passing registered Lua functions between processes
 	//command_line->AppendSwitch( "disable-site-isolation-trials" );
+
+	// Enable remote debugging; see also: settings.remote_debugging_port
+	//command_line->AppendSwitchWithValue( "remote-allow-origins", "http://localhost:9222" );
 }
 
 void ChromiumApp::OnRegisterCustomSchemes( CefRawPtr<CefSchemeRegistrar> registrar )
