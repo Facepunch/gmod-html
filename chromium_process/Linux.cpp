@@ -2,7 +2,7 @@
 #include "ChromiumApp.h"
 
 int main(int argc, char* argv[]) {
-    CefMainArgs main_args(argc, argv); 
-    CefRefPtr<ChromiumApp> app(new ChromiumApp());
-    return CefExecuteProcess(main_args, app, nullptr);
+	CefMainArgs main_args(argc, argv);
+	CefRefPtr<ChromiumApp> app(new ChromiumApp());
+	return CefExecuteProcess(main_args, app, nullptr);
 }

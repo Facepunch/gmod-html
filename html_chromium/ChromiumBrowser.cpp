@@ -299,14 +299,14 @@ void ChromiumBrowser::SendKeyEvent( IHtmlClient::KeyEvent keyEvent )
 	{
 		case IHtmlClient::KeyEvent::Type::KeyChar:
 			chromiumKeyEvent.type = KEYEVENT_CHAR;
-			chromiumKeyEvent.character = static_cast<char16>( keyEvent.key_char );
-			chromiumKeyEvent.unmodified_character = static_cast<char16>( keyEvent.key_char );
+			chromiumKeyEvent.character = static_cast<char16_t>( keyEvent.key_char );
+			chromiumKeyEvent.unmodified_character = static_cast<char16_t>( keyEvent.key_char );
 #ifdef __APPLE__
 			chromiumKeyEvent.windows_key_code = 0;
 			chromiumKeyEvent.native_key_code = keyEvent.native_key_code;
 #else
-			chromiumKeyEvent.windows_key_code = static_cast<char16>( keyEvent.key_char );
-			chromiumKeyEvent.native_key_code = static_cast<char16>( keyEvent.key_char );
+			chromiumKeyEvent.windows_key_code = static_cast<char16_t>( keyEvent.key_char );
+			chromiumKeyEvent.native_key_code = static_cast<char16_t>( keyEvent.key_char );
 #endif
 			break;
 		case IHtmlClient::KeyEvent::Type::KeyDown:

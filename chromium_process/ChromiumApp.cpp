@@ -447,7 +447,7 @@ void ChromiumApp::RegisterFunction( CefRefPtr<CefBrowser> browser, CefRefPtr<Cef
 
 	// Register this function in any frames that already exist
 	{
-		std::vector<int64> frames;
+		std::vector<int64_t> frames;
 		browser->GetFrameIdentifiers( frames );
 
 		for ( auto frameId : frames )
