@@ -64,6 +64,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	executable_dir += "\\..\\..";
 #else
 	executable_dir += "\\..";
+	MessageBoxA(NULL, "You may encounter stability issues with GModCEFCodecFix in 32-bit mode. Please launch Garry's Mod in 64-bit mode instead if possible.", "32-bit Warning", 0);
 #endif
 
 	_chdir(executable_dir.c_str());
