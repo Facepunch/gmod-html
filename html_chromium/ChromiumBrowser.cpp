@@ -556,7 +556,7 @@ bool ChromiumBrowser::OnBeforePopup( CefRefPtr<CefBrowser>,
 	msg.type = MessageQueue::Type::OnCreateChildView;
 	msg.string1 = sourceUrl.ToString();
 	msg.string2 = targetUrl.ToString();
-	msg.integer = static_cast<int>( targetDisposition == WOD_NEW_POPUP );
+	msg.integer = static_cast<int>( targetDisposition == CEF_WOD_NEW_POPUP );
 	QueueMessage( std::move( msg ) );
 
 	// Don't create the popup
