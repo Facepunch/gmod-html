@@ -60,7 +60,7 @@ This will place a complete build into the `dist` folder by default.
 ```sh
 mkdir build
 cd build
-cmake -G Ninja ..
+cmake -G Ninja -D CMAKE_BUILD_TYPE=Release ..
 ninja && ninja install
 ```
 
