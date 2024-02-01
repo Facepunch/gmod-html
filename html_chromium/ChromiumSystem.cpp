@@ -202,7 +202,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 #error
 #endif
 
-	std::string chrome_version = std::to_string(CHROME_VERSION_MAJOR) + "." + std::to_string(CHROME_VERSION_MINOR) + "." + std::to_string(CHROME_VERSION_BUILD) + "." + std::to_string(CHROME_VERSION_PATCH);
+	std::string chrome_version = std::to_string(CHROME_VERSION_MAJOR) + ".0.0.0";
 	CefString(&settings.user_agent).FromString("Mozilla/5.0 (" + platform + "; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" + chrome_version + " Safari/537.36 GMod/13");
 
 	CefString( &settings.log_file ).FromString( strBaseDir + "/chromium.log" );
