@@ -190,13 +190,11 @@ void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, 
 
 	// https://bitbucket.org/chromiumembedded/cef/issues/2400
 	// DXVAVideoDecoding must be disabled for Proton/Wine
-	command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents,HardwareMediaKeyHandling,DXVAVideoDecoding" );
+	// FirstPartySets causes crashing on Chromium 120, also it's an anti-privacy feature
+	command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents,HardwareMediaKeyHandling,DXVAVideoDecoding,FirstPartySets" );
 
 	// Auto-play media
 	command_line->AppendSwitchWithValue( "autoplay-policy", "no-user-gesture-required" );
-
-	// Chromium 80 removed this but only sometimes.
-	command_line->AppendSwitchWithValue( "enable-blink-features", "HTMLImports" );
 
 	// Disable site isolation until we implement passing registered Lua functions between processes
 	//command_line->AppendSwitch( "disable-site-isolation-trials" );
