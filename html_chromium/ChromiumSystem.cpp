@@ -201,14 +201,21 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	// Rotate log file
 	// TODO(winter): This is probably not the best place to be doing this
+	std::error_code rotateError;
 	std::string curLogPath = strBaseDir + "/chromium.log";
 	std::string lastLogPath = strBaseDir + "/chromium.log.1";
 
-	try {
-		fs::copy_file(curLogPath, lastLogPath, fs::copy_options::overwrite_existing);
-		fs::remove(curLogPath); // TODO(winter): Truncate instead?
-	} catch (fs::filesystem_error& e) {
-		LOG(ERROR) << "Couldn't rotate log file: " << e.what();
+	fs::copy_file(curLogPath, lastLogPath, fs::copy_options::overwrite_existing, rotateError);
+
+	if (rotateError) {
+		LOG(WARNING) << "Couldn't copy log file: " << rotateError.message();
+		rotateError.clear();
+	}
+
+	if (rotateError) {
+		fs::remove(curLogPath, rotateError); // TODO(winter): Truncate instead?
+		LOG(WARNING) << "Couldn't remove log file: " << rotateError.message();
+		rotateError.clear();
 	}
 
 	CefString( &settings.log_file ).FromString( curLogPath );
