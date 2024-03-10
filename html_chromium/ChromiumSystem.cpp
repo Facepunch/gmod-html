@@ -18,12 +18,8 @@
 #include <iostream>
 #include <algorithm>
 #include <time.h>
-
-#ifdef _WIN32
-#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
-#endif
+#include <filesystem>
+namespace fs = std::filesystem;
 
 class ChromiumApp
 	: public CefApp
@@ -203,7 +199,23 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	std::string chrome_version = std::to_string(CHROME_VERSION_MAJOR) + ".0.0.0";
 	CefString(&settings.user_agent).FromString("Mozilla/5.0 (" + platform + "; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" + chrome_version + " Safari/537.36 GMod/13");
 
-	CefString( &settings.log_file ).FromString( strBaseDir + "/chromium.log" );
+	// Rotate log file
+	// TODO(winter): This is probably not the best place to be doing this
+	std::string curLogPath = strBaseDir + "/chromium.log";
+	std::string lastLogPath = strBaseDir + "/chromium.log.1";
+
+	try {
+		fs::copy_file(curLogPath, lastLogPath, fs::copy_options::overwrite_existing);
+		fs::remove(curLogPath); // TODO(winter): Truncate instead?
+	} catch (fs::filesystem_error& e) {
+		LOG(ERROR) << "Couldn't rotate log file: " << e.what();
+	}
+
+	CefString( &settings.log_file ).FromString( curLogPath );
+
+	// CEF 120+ requires this otherwise CEF applications will trample each other
+	CefString( &settings.root_cache_path ).FromString( strBaseDir + "/ChromiumCache" );
+	CefString( &settings.cache_path ).FromString( strBaseDir + "/ChromiumCache" );
 
 	// Grab our Sandbox info from the "game" exe
 #if defined(_WIN32) && defined(CEF_USE_SANDBOX)
