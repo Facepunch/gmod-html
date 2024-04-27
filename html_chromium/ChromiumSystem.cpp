@@ -208,7 +208,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	fs::copy_file(curLogPath, lastLogPath, fs::copy_options::overwrite_existing, rotateError);
 
 	if (rotateError) {
-		LOG(WARNING) << "Couldn't copy log file: " << rotateError.message();
+		pResourceHandler->Message("Couldn't rotate chromium.log (copy): " + rotateError.message() + "\n");
 		rotateError.clear();
 	}
 
@@ -216,7 +216,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	fs::remove(curLogPath, rotateError);
 
 	if (rotateError) {
-		LOG(WARNING) << "Couldn't remove log file: " << rotateError.message();
+		pResourceHandler->Message("Couldn't rotate chromium.log (remove): " + rotateError.message() + "\n");
 		rotateError.clear();
 	}
 
@@ -255,6 +255,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	if ( !CefInitialize( main_args, settings, new ChromiumApp, sandbox_info ) )
 	{
+		pResourceHandler->Message("CefInitialize failed!\n");
 		return false;
 	}
 
