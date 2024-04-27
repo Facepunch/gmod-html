@@ -212,8 +212,10 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 		rotateError.clear();
 	}
 
+	// TODO(winter): Truncate instead?
+	fs::remove(curLogPath, rotateError);
+
 	if (rotateError) {
-		fs::remove(curLogPath, rotateError); // TODO(winter): Truncate instead?
 		LOG(WARNING) << "Couldn't remove log file: " << rotateError.message();
 		rotateError.clear();
 	}
