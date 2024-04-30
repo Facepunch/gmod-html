@@ -174,15 +174,17 @@ void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, 
 	command_line->AppendSwitch( "disable-smooth-scrolling" );
 #ifdef _WIN32
 	command_line->AppendSwitch( "enable-begin-frame-scheduling" );
-
-	// TODO: WINE/Proton/Flatpak support?
-	//command_line->AppendSwitch( "no-sandbox" );
 #endif
-	command_line->AppendSwitch( "enable-system-flash" );
 
 	// This can interfere with posix signals and break Breakpad
 #if defined(__linux__) || defined(__APPLE__)
 	command_line->AppendSwitch( "disable-in-process-stack-traces" );
+
+	// Flatpak, AppImage, and Snap break sandboxing
+	// TODO(winter): It's not ideal to just outright turn off sandboxing...but Steam does it too, so
+	if (getenv("container") || getenv("APPIMAGE") || getenv("SNAP")) {
+		command_line->AppendSwitch("no-sandbox");
+	}
 #endif
 
 #ifdef __APPLE__
