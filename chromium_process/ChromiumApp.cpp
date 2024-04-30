@@ -174,7 +174,8 @@ void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, 
 	command_line->AppendSwitch( "disable-smooth-scrolling" );
 #ifdef _WIN32
 	command_line->AppendSwitch( "enable-begin-frame-scheduling" );
-	// TODO: WINE/Proton support?
+
+	// TODO: WINE/Proton/Flatpak support?
 	//command_line->AppendSwitch( "no-sandbox" );
 #endif
 	command_line->AppendSwitch( "enable-system-flash" );
@@ -215,6 +216,15 @@ CefRefPtr<CefRenderProcessHandler> ChromiumApp::GetRenderProcessHandler()
 }
 
 //
+// CefBrowserProcessHandler interface
+//
+bool ChromiumApp::OnAlreadyRunningAppRelaunch( CefRefPtr<CefCommandLine> command_line, const CefString &current_directory )
+{
+	// See ChromiumSystem::Init, we detect lockfile and handle things there
+	return true;
+}
+
+//
 // CefRenderProcessHandler interface
 //
 void ChromiumApp::OnContextCreated( CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context )
@@ -226,7 +236,7 @@ void ChromiumApp::OnContextCreated( CefRefPtr<CefBrowser> browser, CefRefPtr<Cef
 	{
 		context->GetGlobal()->DeleteValue( "print" );
 
-		// Removing WebSQL for now - we can add it back after CEF3 has been updated
+		// TODO: Removing WebSQL for now - we can add it back after CEF3 has been updated
 		context->GetGlobal()->DeleteValue( "openDatabase" );
 
 	}
@@ -244,7 +254,7 @@ void ChromiumApp::OnContextCreated( CefRefPtr<CefBrowser> browser, CefRefPtr<Cef
 
 void ChromiumApp::OnContextReleased( CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context )
 {
-
+	// Do nothing
 }
 
 bool ChromiumApp::OnProcessMessageReceived( CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefProcessId source_process, CefRefPtr<CefProcessMessage> message )
@@ -445,12 +455,12 @@ void ChromiumApp::RegisterFunction( CefRefPtr<CefBrowser> browser, CefRefPtr<Cef
 
 	// Register this function in any frames that already exist
 	{
-		std::vector<int64_t> frames;
+		std::vector<CefString> frames;
 		browser->GetFrameIdentifiers( frames );
 
 		for ( auto frameId : frames )
 		{
-			RegisterFunctionInFrame( browser->GetFrame( frameId ), objName, funcName );
+			RegisterFunctionInFrame( browser->GetFrameByIdentifier( frameId ), objName, funcName );
 		}
 	}
 

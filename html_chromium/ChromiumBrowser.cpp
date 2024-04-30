@@ -804,7 +804,7 @@ void ChromiumBrowser::OnPaint( CefRefPtr<CefBrowser>, CefRenderHandler::PaintEle
 	}
 }
 
-void ChromiumBrowser::OnAcceleratedPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, void* shared_handle)
+void ChromiumBrowser::OnAcceleratedPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, const CefAcceleratedPaintInfo& info)
 {
 	// TODO: Implement once fixed for OSR on Viz
 	// TODO: See ChromiumSystem::CreateClient

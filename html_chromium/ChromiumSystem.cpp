@@ -35,7 +35,7 @@ public:
 		command_line->AppendSwitch( "disable-smooth-scrolling" );
 #ifdef _WIN32
 		command_line->AppendSwitch( "enable-begin-frame-scheduling" );
-		// TODO: WINE/Proton support?
+		// TODO: WINE/Proton/Flatpak support?
 		//command_line->AppendSwitch( "no-sandbox" );
 #endif
 		command_line->AppendSwitch( "enable-system-flash" );
@@ -77,7 +77,7 @@ private:
 typedef void* ( *CreateCefSandboxInfoFn )( );
 typedef void ( *DestroyCefSandboxInfoFn )( void* );
 
-// Needs cleaning up. There's too much Windows shit.
+// TODO: Needs cleaning up. There's too much Windows shit.
 bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResourceHandler )
 {
 	g_pHtmlResourceHandler = pResourceHandler;
@@ -205,26 +205,50 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	std::string curLogPath = strBaseDir + "/chromium.log";
 	std::string lastLogPath = strBaseDir + "/chromium.log.1";
 
-	fs::copy_file(curLogPath, lastLogPath, fs::copy_options::overwrite_existing, rotateError);
+	std::string cefCachePath = strBaseDir + "/ChromiumCache";
+	std::string cefLockFilePath = cefCachePath + "/lockfile";
 
-	if (rotateError) {
-		pResourceHandler->Message("Couldn't rotate chromium.log (copy): " + rotateError.message() + "\n");
-		rotateError.clear();
-	}
+	// TODO(winter): What if GMod/CEF crashes? Will the lockfile still be there?
+	if (fs::exists(cefLockFilePath)) {
+		pResourceHandler->Message("Skipping Chromium log rotation (lockfile exists)...\n");
 
-	// TODO(winter): Truncate instead?
-	fs::remove(curLogPath, rotateError);
+		// TODO(winter): See also ChromiumSystem::Shutdown; we should be clearing these multirun caches instead of keeping them around/reusing them (they can be >500MB EACH)
+		unsigned int multirunInstanceID = 0;
+		//while (fs::exists(cefCachePath)) {
+		while (fs::exists(cefCachePath) && fs::exists(cefLockFilePath)) {
+			multirunInstanceID++;
+			cefCachePath = strBaseDir + "/ChromiumCacheMultirun/" + std::to_string(multirunInstanceID);
+			cefLockFilePath = cefCachePath + "/lockfile";
+		}
 
-	if (rotateError) {
-		pResourceHandler->Message("Couldn't rotate chromium.log (remove): " + rotateError.message() + "\n");
-		rotateError.clear();
+		m_MultirunCacheDir = cefCachePath;
+
+		std::string tmpCacheMsg = "Using temporary Chromium cache to support multirun: " + m_MultirunCacheDir + "\n";
+		pResourceHandler->Message(tmpCacheMsg.c_str());
+	} else {
+		fs::copy_file(curLogPath, lastLogPath, fs::copy_options::overwrite_existing, rotateError);
+
+		if (rotateError) {
+			const std::string rotateErrorMsg = "Couldn't rotate chromium.log (copy): " + rotateError.message() + "\n";
+			pResourceHandler->Message(rotateErrorMsg.c_str());
+			rotateError.clear();
+		}
+
+		// TODO(winter): Truncate instead?
+		fs::remove(curLogPath, rotateError);
+
+		if (rotateError) {
+			const std::string rotateErrorMsg = "Couldn't rotate chromium.log (remove): " + rotateError.message() + "\n";
+			pResourceHandler->Message(rotateErrorMsg.c_str());
+			rotateError.clear();
+		}
 	}
 
 	CefString( &settings.log_file ).FromString( curLogPath );
 
 	// CEF 120+ requires this otherwise CEF applications will trample each other
-	CefString( &settings.root_cache_path ).FromString( strBaseDir + "/ChromiumCache" );
-	CefString( &settings.cache_path ).FromString( strBaseDir + "/ChromiumCache" );
+	CefString( &settings.root_cache_path ).FromString( cefCachePath );
+	CefString( &settings.cache_path ).FromString( cefCachePath );
 
 	// Grab our Sandbox info from the "game" exe
 #if defined(_WIN32) && defined(CEF_USE_SANDBOX)
@@ -297,6 +321,24 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 void ChromiumSystem::Shutdown()
 {
 	CefShutdown();
+	
+	// Delete temporary ChromiumCacheMultirun if it exists
+	// TODO(winter): For some reason CEF still hasn't released the handles it has for these files even though CefShutdown has finished and the lockfile is gone...
+	/*
+	if (!m_MultirunCacheDir.empty()) {
+		while (fs::exists(m_MultirunCacheDir + "/lockfile")) {
+			// Spin until the lockfile is released by CEF
+		}
+
+		std::error_code removeTempError;
+		fs::remove_all(m_MultirunCacheDir, removeTempError);
+
+		if (removeTempError) {
+			const std::string removeTempErrorMsg = "Couldn't remove temporary Chromium cache: " + removeTempError.message() + "\n";
+			g_pHtmlResourceHandler->Message(removeTempErrorMsg.c_str());
+		}
+	}
+	*/
 }
 
 IHtmlClient* ChromiumSystem::CreateClient( IHtmlClientListener* listener )
