@@ -232,15 +232,11 @@ bool ChromiumApp::OnAlreadyRunningAppRelaunch( CefRefPtr<CefCommandLine> command
 void ChromiumApp::OnContextCreated( CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context )
 {
 	//
-	// CEF3 doesn't support implementing the print dialog, so we've gotta just remove window.print.
+	// CEF3 only supports implementing CefPrintHandler on Linux, so we've gotta just remove window.print.
 	//
 	context->Enter();
 	{
 		context->GetGlobal()->DeleteValue( "print" );
-
-		// TODO: Removing WebSQL for now - we can add it back after CEF3 has been updated
-		context->GetGlobal()->DeleteValue( "openDatabase" );
-
 	}
 	context->Exit();
 
