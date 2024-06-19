@@ -71,5 +71,8 @@ add_subdirectory(html_stub EXCLUDE_FROM_ALL)
 add_subdirectory(html_chromium)
 add_subdirectory(chromium_process)
 add_subdirectory(example_host EXCLUDE_FROM_ALL)
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
+  add_subdirectory(gmod)
+endif()
 
 PRINT_CEF_CONFIG()
