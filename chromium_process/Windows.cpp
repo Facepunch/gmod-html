@@ -33,7 +33,7 @@
 	}
 #endif
 
-using FuncLauncherMain = int (*)(HINSTANCE, HINSTANCE, LPSTR, int);
+typedef int (*LauncherMain_t)(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow) {
 	// Check if "--type=" is in the command arguments. If it is, we are a chromium subprocess.
@@ -71,6 +71,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	// Launch GarrysMod's main function from this process. We needed this so the "main" process could provide sandbox information above.
 	HMODULE hLauncher = LoadLibraryA("launcher.dll");
-	void* mainFn = static_cast<void*>(GetProcAddress(hLauncher, "LauncherMain"));
-	return (static_cast<FuncLauncherMain>(mainFn))(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+	LauncherMain_t mainFn = (LauncherMain_t)(GetProcAddress(hLauncher, "LauncherMain"));
+	return mainFn(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 }

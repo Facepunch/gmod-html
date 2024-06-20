@@ -38,7 +38,7 @@ if(OS_LINUX OR OS_WINDOWS)
 			install(TARGETS ${TARGET} DESTINATION "${INSTALL_OUT_DIR}/GarrysMod/bin")
 		endif()
 		
-		set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME "gmod_launcher")
+		set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME "gmod")
 		target_link_libraries(${TARGET}
 			shlwapi
 			winmm
