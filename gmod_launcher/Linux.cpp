@@ -7,11 +7,7 @@
 #include <sys/wait.h>
 #include <sched.h>
 
-#include <iostream>
-#include <fstream>
-
 #define REALPATH_BUF_SIZE 4096
-
 typedef int (*LauncherMain_t)(int argc, char **argv);
 
 char has_namespace_support = 0x0;
