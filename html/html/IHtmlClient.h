@@ -11,13 +11,13 @@ public:
 	enum class EventModifiers : int
 	{
 		None = 0,
-		Shift = 1 << 0,
-		Control = 1 << 1,
-		Alt = 1 << 2,
-		LeftMouse = 1 << 3,
-		MiddleMouse = 1 << 4,
-		RightMouse = 1 << 5,
-		OSX_Cmd = 1 << 6,
+		Shift = (1 << 0),
+		Control = (1 << 1),
+		Alt = (1 << 2),
+		LeftMouse = (1 << 3),
+		MiddleMouse = (1 << 4),
+		RightMouse = (1 << 5),
+		OSX_Cmd = (1 << 6),
 	};
 
 	struct KeyEvent
@@ -34,9 +34,10 @@ public:
 		union
 		{
 			unsigned short key_char; // Type::KeyChar
-			int windows_key_code;    // Type::KeyDown / Type::KeyUp;
+			int windows_key_code;    // Type::KeyDown / Type::KeyUp
 		};
 
+		// TODO: Fix this Facepunch! See ChromiumBrowser::SendKeyEvent
 #ifndef _WIN32
 		int native_key_code;
 #endif

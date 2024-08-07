@@ -200,6 +200,8 @@ private:
 
 	bool m_OpenLinksExternally;
 
+	CefKeyEvent m_LastKeyEvent;
+
 private:
 	IMPLEMENT_REFCOUNTING( ChromiumBrowser );
 

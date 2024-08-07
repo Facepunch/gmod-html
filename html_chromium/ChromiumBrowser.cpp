@@ -1,5 +1,7 @@
 ﻿
 #include <iostream>
+//#include <chrono>
+//#include <thread>
 
 #include "ChromiumBrowser.h"
 
@@ -9,6 +11,9 @@
 #include "cef_start.h"
 #include "include/cef_parser.h"
 #include "cef_end.h"
+#include "chromium/dom_code.h"
+#include "chromium/keycode_converter.h"
+#include "DomCodeConverter.h"
 
 #ifdef _WIN32
 	#include <shellapi.h>
@@ -198,29 +203,36 @@ static bool JSValuesToCefList( CefRefPtr<CefListValue> outList, const std::vecto
 
 static int GetModifiers( const IHtmlClient::EventModifiers modifiers )
 {
-	int gameModifiers = static_cast<int>( modifiers );
+	int gameModifiers = static_cast<int>(modifiers);
 	int chromiumModifiers = 0;
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Shift ) )
+	if (gameModifiers & static_cast<int>(IHtmlClient::EventModifiers::Shift)) {
 		chromiumModifiers |= EVENTFLAG_SHIFT_DOWN;
+	}
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Control ) )
+	if (gameModifiers & static_cast<int>(IHtmlClient::EventModifiers::Control)) {
 		chromiumModifiers |= EVENTFLAG_CONTROL_DOWN;
+	}
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Alt ) )
+	if (gameModifiers & static_cast<int>(IHtmlClient::EventModifiers::Alt)) {
 		chromiumModifiers |= EVENTFLAG_ALT_DOWN;
+	}
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::LeftMouse ) )
+	if (gameModifiers & static_cast<int>(IHtmlClient::EventModifiers::LeftMouse)) {
 		chromiumModifiers |= EVENTFLAG_LEFT_MOUSE_BUTTON;
+	}
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::MiddleMouse ) )
+	if (gameModifiers & static_cast<int>(IHtmlClient::EventModifiers::MiddleMouse)) {
 		chromiumModifiers |= EVENTFLAG_MIDDLE_MOUSE_BUTTON;
+	}
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::RightMouse ) )
+	if (gameModifiers & static_cast<int>(IHtmlClient::EventModifiers::RightMouse)) {
 		chromiumModifiers |= EVENTFLAG_RIGHT_MOUSE_BUTTON;
+	}
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::OSX_Cmd ) )
+	if (gameModifiers & static_cast<int>(IHtmlClient::EventModifiers::OSX_Cmd)) {
 		chromiumModifiers |= EVENTFLAG_COMMAND_DOWN;
+	}
 	
 	return chromiumModifiers;
 }
@@ -286,50 +298,109 @@ void ChromiumBrowser::SetFocused( bool hasFocus )
 	});
 }
 
-void ChromiumBrowser::SendKeyEvent( IHtmlClient::KeyEvent keyEvent )
+// Validate against https://dvcs.w3.org/hg/d4e/raw-file/tip/key-event-test.html
+void ChromiumBrowser::SendKeyEvent(IHtmlClient::KeyEvent keyEvent)
 {
 	if (m_BrowserHost == nullptr) {
 		return;
 	}
 
-	CefKeyEvent chromiumKeyEvent;
-	chromiumKeyEvent.modifiers = GetModifiers( keyEvent.modifiers );
+	// TODO/BUG/HACK(winter): Getting wrong windows_key_code for modifiers for some reason...
+	int modifiers = GetModifiers(keyEvent.modifiers);
 
-	switch ( keyEvent.eventType )
-	{
-		case IHtmlClient::KeyEvent::Type::KeyChar:
-			chromiumKeyEvent.type = KEYEVENT_CHAR;
-			chromiumKeyEvent.character = static_cast<char16_t>( keyEvent.key_char );
-			chromiumKeyEvent.unmodified_character = static_cast<char16_t>( keyEvent.key_char );
-#ifdef __APPLE__
-			chromiumKeyEvent.windows_key_code = 0;
-			chromiumKeyEvent.native_key_code = keyEvent.native_key_code;
-#else
-			chromiumKeyEvent.windows_key_code = static_cast<char16_t>( keyEvent.key_char );
-			chromiumKeyEvent.native_key_code = static_cast<char16_t>( keyEvent.key_char );
-#endif
-			break;
-		case IHtmlClient::KeyEvent::Type::KeyDown:
-			chromiumKeyEvent.type = KEYEVENT_KEYDOWN;
-			chromiumKeyEvent.windows_key_code = keyEvent.windows_key_code;
-#ifndef _WIN32
-			chromiumKeyEvent.native_key_code = keyEvent.native_key_code;
-#else
-			chromiumKeyEvent.native_key_code = keyEvent.windows_key_code;
-#endif
-			break;
-		case IHtmlClient::KeyEvent::Type::KeyUp:
-			chromiumKeyEvent.type = KEYEVENT_KEYUP;
-			chromiumKeyEvent.windows_key_code = keyEvent.windows_key_code;
-#ifndef _WIN32
-			chromiumKeyEvent.native_key_code = keyEvent.native_key_code;
-#else
-			chromiumKeyEvent.native_key_code = keyEvent.windows_key_code;
-#endif
-			break;
+	if ((modifiers & EVENTFLAG_SHIFT_DOWN || m_LastKeyEvent.modifiers & EVENTFLAG_SHIFT_DOWN) && keyEvent.windows_key_code == 0xA0) {
+		keyEvent.windows_key_code = 0x10;
+	}
+	if ((modifiers & EVENTFLAG_CONTROL_DOWN || m_LastKeyEvent.modifiers & EVENTFLAG_CONTROL_DOWN) && keyEvent.windows_key_code == 0xA2) {
+		keyEvent.windows_key_code = 0x11;
+	}
+	if ((modifiers & EVENTFLAG_ALT_DOWN || m_LastKeyEvent.modifiers & EVENTFLAG_ALT_DOWN) && keyEvent.windows_key_code == 0x0) {
+		keyEvent.windows_key_code = 0x12;
 	}
 
-	m_BrowserHost->SendKeyEvent( chromiumKeyEvent );
+	// TODO/BUG(winter): IHtmlClient doesn't give us native_key_code on Windows. Facepunch needs to PROPERLY fix this!
+#ifndef _WIN32
+	int native_key_code = keyEvent.native_key_code;
+#else
+	int native_key_code = 0;
+#endif
+
+	// TODO/BUG(winter): IHtmlClient gives us the wrong native_key_code on Linux. Facepunch needs to PROPERLY fix this!
+	// HACK: Use Chromium's `DomCodeToNativeKeycode` to "generate" the native_key_code
+	// Will be converted back, in Chromium, with `NativeKeycodeToDomCode`.
+	bool lastkeydown_null = m_LastKeyEvent.character == 0x0 && m_LastKeyEvent.windows_key_code == 0x0 && m_LastKeyEvent.native_key_code == 0x0;
+
+#if defined(_WIN32) || defined(__linux__)
+	ui::DomCode domCode = WindowsKeyCodeToDomCode(keyEvent.windows_key_code, lastkeydown_null);
+	native_key_code = ui::KeycodeConverter::DomCodeToNativeKeycode(domCode);
+#endif
+
+	//LOG(ERROR) << "WINDOWS: " << keyEvent.windows_key_code;
+	//LOG(ERROR) << "NATIVE: " << native_key_code;
+	//LOG(ERROR) << "CHAR: " << keyEvent.key_char;
+
+	CefKeyEvent chromiumKeyEvent;
+	chromiumKeyEvent.modifiers = modifiers;
+
+	switch (keyEvent.eventType)
+	{
+	case IHtmlClient::KeyEvent::Type::KeyChar:
+		//LOG(ERROR) << "KEYEVENT_CHAR";
+
+		// BUG/HACK: If the last KeyDown was literally nothing, we'll fire a WORKING version of it before continuing
+		/*
+		if (lastkeydown_null) {
+			IHtmlClient::KeyEvent fakeKeyDownEvent{};
+			fakeKeyDownEvent.eventType = IHtmlClient::KeyEvent::Type::KeyDown;
+			fakeKeyDownEvent.modifiers = keyEvent.modifiers;
+			fakeKeyDownEvent.key_char = keyEvent.key_char;
+			fakeKeyDownEvent.windows_key_code = keyEvent.windows_key_code;
+#ifndef _WIN32
+			fakeKeyDownEvent.native_key_code = native_key_code;
+#endif
+			
+			// TODO(winter): Key events trample each other if we effectively send them to CEF at the same time (sleep halts TID_UI!)
+			//SendKeyEvent(fakeKeyDownEvent);
+			//this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		*/
+
+		chromiumKeyEvent.type = KEYEVENT_CHAR;
+		chromiumKeyEvent.character = static_cast<char16_t>(keyEvent.key_char);
+		chromiumKeyEvent.unmodified_character = static_cast<char16_t>(keyEvent.key_char);
+#ifdef __APPLE__
+		chromiumKeyEvent.windows_key_code = 0;
+		chromiumKeyEvent.native_key_code = native_key_code;
+#else
+		chromiumKeyEvent.windows_key_code = keyEvent.windows_key_code;
+		chromiumKeyEvent.native_key_code = native_key_code;
+#endif
+		break;
+	case IHtmlClient::KeyEvent::Type::KeyDown:
+		//LOG(ERROR) << "KEYEVENT_RAWKEYDOWN";
+		chromiumKeyEvent.type = KEYEVENT_RAWKEYDOWN; // TODO: Fix repeating detection with KEYEVENT_KEYDOWN(?)
+		chromiumKeyEvent.windows_key_code = keyEvent.windows_key_code;
+		chromiumKeyEvent.native_key_code = native_key_code;
+		break;
+	case IHtmlClient::KeyEvent::Type::KeyUp:
+		//LOG(ERROR) << "KEYEVENT_KEYUP";
+		chromiumKeyEvent.type = KEYEVENT_KEYUP;
+		chromiumKeyEvent.windows_key_code = keyEvent.windows_key_code;
+		chromiumKeyEvent.native_key_code = native_key_code;
+		break;
+	}
+
+	//chromiumKeyEvent.character = 0x0;
+	//chromiumKeyEvent.unmodified_character = 0x0;
+	//chromiumKeyEvent.windows_key_code = 0x0;
+	//chromiumKeyEvent.native_key_code = 0x0;
+
+	m_LastKeyEvent = chromiumKeyEvent;
+
+	// TODO: There has to be *something* to send to CEF for this to make any sense
+	//if (chromiumKeyEvent.character != 0x0 || chromiumKeyEvent.windows_key_code != 0x0 || chromiumKeyEvent.native_key_code != 0x0) {
+		m_BrowserHost->SendKeyEvent(chromiumKeyEvent);
+	//}
 }
 
 void ChromiumBrowser::SendMouseMoveEvent( IHtmlClient::MouseEvent gmodMouseEvent, bool mouseLeave )
@@ -352,7 +423,7 @@ void ChromiumBrowser::SendMouseWheelEvent( IHtmlClient::MouseEvent gmodMouseEven
 		return;
 	}
 
-	// Some CEF bug is fucking this up. I don't care much for worrying about it yet
+	// TODO(willox): Some CEF bug is fucking this up. I don't care much for worrying about it yet
 	CefMouseEvent mouseEvent;
 	mouseEvent.x = gmodMouseEvent.x;
 	mouseEvent.y = gmodMouseEvent.y;
