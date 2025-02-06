@@ -34,7 +34,13 @@ cd build_x64
 cmake -G "Visual Studio 17 2022" -A x64 ..
 ```
 
-After running either of these sets of commands, you can enter your created directory and open the `gmod-html.sln` solution in Visual Studio. Compiling the `INSTALL` project will place a complete build into the `<your_build_dir>/out` folder by default.
+After running either of these sets of commands, you can enter your created directory and open the `gmod-html.sln` solution in Visual Studio. Compiling the `INSTALL` project will place a complete build into the `dist/` folder by default.
+
+If you only have VS Build Tools, use this command in "Developer Command Prompt for VS 2022":
+```
+msbuild /p:Configuration=Release INSTALL.vcxproj
+```
+
 
 ### Linux
 #### Requirements

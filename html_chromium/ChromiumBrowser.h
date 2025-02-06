@@ -132,6 +132,12 @@ public:
 		bool,
 		bool ) override;
 
+	bool OnOpenURLFromTab( CefRefPtr<CefBrowser>,
+		CefRefPtr<CefFrame> frame,
+		const CefString &targetUrl,
+		CefLifeSpanHandler::WindowOpenDisposition targetDisposition,
+		bool ) override;
+
 	//
 	// CefResourceRequestHandler interface
 	//

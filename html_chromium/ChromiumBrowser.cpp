@@ -325,12 +325,12 @@ void ChromiumBrowser::SendKeyEvent(IHtmlClient::KeyEvent keyEvent)
 	int native_key_code = 0;
 #endif
 
+#if defined(_WIN32) || defined(__linux__)
 	// TODO/BUG(winter): IHtmlClient gives us the wrong native_key_code on Linux. Facepunch needs to PROPERLY fix this!
 	// HACK: Use Chromium's `DomCodeToNativeKeycode` to "generate" the native_key_code
 	// Will be converted back, in Chromium, with `NativeKeycodeToDomCode`.
 	bool lastkeydown_null = m_LastKeyEvent.character == 0x0 && m_LastKeyEvent.windows_key_code == 0x0 && m_LastKeyEvent.native_key_code == 0x0;
 
-#if defined(_WIN32) || defined(__linux__)
 	ui::DomCode domCode = WindowsKeyCodeToDomCode(keyEvent.windows_key_code, lastkeydown_null);
 	native_key_code = ui::KeycodeConverter::DomCodeToNativeKeycode(domCode);
 #endif
@@ -985,6 +985,24 @@ void ChromiumBrowser::OnProtocolExecution( CefRefPtr<CefBrowser>,
 	allow_os_execution = false;
 }
 
+bool ChromiumBrowser::OnOpenURLFromTab( CefRefPtr<CefBrowser>,
+	CefRefPtr<CefFrame> frame,
+	const CefString &targetUrl,
+	CefLifeSpanHandler::WindowOpenDisposition targetDisposition,
+	bool )
+{
+	CefString sourceUrl = frame->GetURL();
+
+	MessageQueue::Message msg;
+	msg.type = MessageQueue::Type::OnCreateChildView;
+	msg.string1 = sourceUrl.ToString();
+	msg.string2 = targetUrl.ToString();
+	msg.integer = static_cast<int>( targetDisposition == CEF_WOD_NEW_POPUP );
+	QueueMessage( std::move( msg ) );
+
+	// Don't create the popup
+	return true;
+}
 
 //
 // CefContextMenuHandler interface
