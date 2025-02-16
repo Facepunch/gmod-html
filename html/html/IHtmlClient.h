@@ -37,10 +37,7 @@ public:
 			int windows_key_code;    // Type::KeyDown / Type::KeyUp
 		};
 
-		// TODO: Fix this Facepunch! See ChromiumBrowser::SendKeyEvent
-#ifndef _WIN32
 		int native_key_code;
-#endif
 
 		EventModifiers modifiers;
 	};

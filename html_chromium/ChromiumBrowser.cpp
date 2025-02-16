@@ -305,25 +305,8 @@ void ChromiumBrowser::SendKeyEvent(IHtmlClient::KeyEvent keyEvent)
 		return;
 	}
 
-	// TODO/BUG/HACK(winter): Getting wrong windows_key_code for modifiers for some reason...
 	int modifiers = GetModifiers(keyEvent.modifiers);
-
-	if ((modifiers & EVENTFLAG_SHIFT_DOWN || m_LastKeyEvent.modifiers & EVENTFLAG_SHIFT_DOWN) && keyEvent.windows_key_code == 0xA0) {
-		keyEvent.windows_key_code = 0x10;
-	}
-	if ((modifiers & EVENTFLAG_CONTROL_DOWN || m_LastKeyEvent.modifiers & EVENTFLAG_CONTROL_DOWN) && keyEvent.windows_key_code == 0xA2) {
-		keyEvent.windows_key_code = 0x11;
-	}
-	if ((modifiers & EVENTFLAG_ALT_DOWN || m_LastKeyEvent.modifiers & EVENTFLAG_ALT_DOWN) && keyEvent.windows_key_code == 0x0) {
-		keyEvent.windows_key_code = 0x12;
-	}
-
-	// TODO/BUG(winter): IHtmlClient doesn't give us native_key_code on Windows. Facepunch needs to PROPERLY fix this!
-#ifndef _WIN32
 	int native_key_code = keyEvent.native_key_code;
-#else
-	int native_key_code = 0;
-#endif
 
 #if defined(_WIN32) || defined(__linux__)
 	// TODO/BUG(winter): IHtmlClient gives us the wrong native_key_code on Linux. Facepunch needs to PROPERLY fix this!
@@ -338,6 +321,7 @@ void ChromiumBrowser::SendKeyEvent(IHtmlClient::KeyEvent keyEvent)
 	//LOG(ERROR) << "WINDOWS: " << keyEvent.windows_key_code;
 	//LOG(ERROR) << "NATIVE: " << native_key_code;
 	//LOG(ERROR) << "CHAR: " << keyEvent.key_char;
+	//LOG(ERROR) << "MODIFIERS: " << modifiers;
 
 	CefKeyEvent chromiumKeyEvent;
 	chromiumKeyEvent.modifiers = modifiers;
@@ -346,24 +330,6 @@ void ChromiumBrowser::SendKeyEvent(IHtmlClient::KeyEvent keyEvent)
 	{
 	case IHtmlClient::KeyEvent::Type::KeyChar:
 		//LOG(ERROR) << "KEYEVENT_CHAR";
-
-		// BUG/HACK: If the last KeyDown was literally nothing, we'll fire a WORKING version of it before continuing
-		/*
-		if (lastkeydown_null) {
-			IHtmlClient::KeyEvent fakeKeyDownEvent{};
-			fakeKeyDownEvent.eventType = IHtmlClient::KeyEvent::Type::KeyDown;
-			fakeKeyDownEvent.modifiers = keyEvent.modifiers;
-			fakeKeyDownEvent.key_char = keyEvent.key_char;
-			fakeKeyDownEvent.windows_key_code = keyEvent.windows_key_code;
-#ifndef _WIN32
-			fakeKeyDownEvent.native_key_code = native_key_code;
-#endif
-			
-			// TODO(winter): Key events trample each other if we effectively send them to CEF at the same time (sleep halts TID_UI!)
-			//SendKeyEvent(fakeKeyDownEvent);
-			//this_thread::sleep_for(chrono::milliseconds(100));
-		}
-		*/
 
 		chromiumKeyEvent.type = KEYEVENT_CHAR;
 		chromiumKeyEvent.character = static_cast<char16_t>(keyEvent.key_char);
