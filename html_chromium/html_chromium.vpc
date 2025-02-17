@@ -30,6 +30,8 @@ $Configuration
 
 $Project "html_chromium"
 {
+	$Group "Game"
+
 	$Folder "Interfaces"
 	{
 		$File "$SRCDIR\garrysmod\html\IHtmlSystem.h"

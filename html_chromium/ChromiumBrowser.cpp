@@ -187,13 +187,22 @@ static int GetModifiers( const IHtmlClient::EventModifiers modifiers )
 	int chromiumModifiers = 0;
 
 	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Shift ) )
-		chromiumModifiers |= EVENTFLAG_SHIFT_DOWN;
+		chromiumModifiers |= EVENTFLAG_SHIFT_DOWN | EVENTFLAG_IS_LEFT;
+
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::ShiftR ) )
+		chromiumModifiers |= EVENTFLAG_SHIFT_DOWN | EVENTFLAG_IS_RIGHT;
 
 	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Control ) )
-		chromiumModifiers |= EVENTFLAG_CONTROL_DOWN;
+		chromiumModifiers |= EVENTFLAG_CONTROL_DOWN | EVENTFLAG_IS_LEFT;
+
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::ControlR ) )
+		chromiumModifiers |= EVENTFLAG_CONTROL_DOWN | EVENTFLAG_IS_RIGHT;
 
 	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Alt ) )
-		chromiumModifiers |= EVENTFLAG_ALT_DOWN;
+		chromiumModifiers |= EVENTFLAG_ALT_DOWN | EVENTFLAG_IS_LEFT;
+
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::AltGr ) )
+		chromiumModifiers |= EVENTFLAG_ALT_DOWN | EVENTFLAG_IS_RIGHT; // EVENTFLAG_ALTGR_DOWN undefined on Linux?
 
 	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::LeftMouse ) )
 		chromiumModifiers |= EVENTFLAG_LEFT_MOUSE_BUTTON;
@@ -203,6 +212,9 @@ static int GetModifiers( const IHtmlClient::EventModifiers modifiers )
 
 	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::RightMouse ) )
 		chromiumModifiers |= EVENTFLAG_RIGHT_MOUSE_BUTTON;
+
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Numpad ) )
+		chromiumModifiers |= EVENTFLAG_IS_KEY_PAD;
 
 	return chromiumModifiers;
 }
@@ -271,29 +283,20 @@ void ChromiumBrowser::SendKeyEvent( IHtmlClient::KeyEvent keyEvent )
 			chromiumKeyEvent.unmodified_character = static_cast<char16>( keyEvent.key_char );
 #ifdef OSX
 			chromiumKeyEvent.windows_key_code = 0;
-			chromiumKeyEvent.native_key_code = keyEvent.native_key_code;
 #else
-			chromiumKeyEvent.windows_key_code = static_cast<char16>( keyEvent.key_char );
-			chromiumKeyEvent.native_key_code = static_cast<char16>( keyEvent.key_char );
+			chromiumKeyEvent.windows_key_code = keyEvent.windows_key_code;
 #endif
+			chromiumKeyEvent.native_key_code = keyEvent.native_key_code;
 			break;
 		case IHtmlClient::KeyEvent::Type::KeyDown:
 			chromiumKeyEvent.type = KEYEVENT_KEYDOWN;
 			chromiumKeyEvent.windows_key_code = keyEvent.windows_key_code;
-#ifndef _WIN32
 			chromiumKeyEvent.native_key_code = keyEvent.native_key_code;
-#else
-			chromiumKeyEvent.native_key_code = keyEvent.windows_key_code;
-#endif
 			break;
 		case IHtmlClient::KeyEvent::Type::KeyUp:
 			chromiumKeyEvent.type = KEYEVENT_KEYUP;
 			chromiumKeyEvent.windows_key_code = keyEvent.windows_key_code;
-#ifndef _WIN32
 			chromiumKeyEvent.native_key_code = keyEvent.native_key_code;
-#else
-			chromiumKeyEvent.native_key_code = keyEvent.windows_key_code;
-#endif
 			break;
 	}
 
@@ -659,6 +662,8 @@ void ChromiumBrowser::GetViewRect( CefRefPtr<CefBrowser>, CefRect& rect )
 
 void ChromiumBrowser::OnPopupShow( CefRefPtr<CefBrowser>, bool show )
 {
+	if ( !m_BrowserHost ) return;
+
 	if ( !show )
 	{
 		m_PopupX = 0;
@@ -725,6 +730,31 @@ void ChromiumBrowser::OnPaint( CefRefPtr<CefBrowser>, CefRenderHandler::PaintEle
 //
 // CefRequestHandler interface
 //
+bool ChromiumBrowser::OnOpenURLFromTab( CefRefPtr<CefBrowser>,
+	CefRefPtr<CefFrame> frame,
+	const CefString& targetUrl,
+	CefLifeSpanHandler::WindowOpenDisposition targetDisposition,
+	bool user_gesture )
+{
+	// Does similar things like OnBeforePopup, for example middle mouse clicks
+	if ( targetDisposition == WOD_NEW_POPUP || targetDisposition == WOD_NEW_FOREGROUND_TAB || targetDisposition == WOD_NEW_BACKGROUND_TAB )
+	{
+		CefString sourceUrl = frame->GetURL();
+
+		MessageQueue::Message msg;
+		msg.type = MessageQueue::Type::OnCreateChildView;
+		msg.string1 = sourceUrl.ToString();
+		msg.string2 = targetUrl.ToString();
+		msg.integer = static_cast<int>( targetDisposition == WOD_NEW_POPUP );
+		QueueMessage( std::move( msg ) );
+
+		// Don't create the popup
+		return true;
+	}
+
+	return false;
+}
+
 bool ChromiumBrowser::OnBeforeBrowse( CefRefPtr<CefBrowser>,
 	CefRefPtr<CefFrame>,
 	CefRefPtr<CefRequest> request,

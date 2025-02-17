@@ -120,6 +120,12 @@ public:
 		bool& disable_default_handling ) override {
 		return this;
 	}
+	
+	bool OnOpenURLFromTab( CefRefPtr<CefBrowser> browser,
+		CefRefPtr<CefFrame> frame,
+		const CefString& target_url,
+		CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+		bool user_gesture ) override;
 
 	bool OnBeforeBrowse( CefRefPtr<CefBrowser>,
 		CefRefPtr<CefFrame>,
