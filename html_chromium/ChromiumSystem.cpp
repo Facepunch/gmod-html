@@ -174,8 +174,10 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	}
 
 	// GMOD: GO - We use the same resources with 32-bit and 64-bit builds, so always use the 32-bit bin path for them
-	CefString( &settings.resources_dir_path ).FromString( chromiumDir );
-	CefString( &settings.locales_dir_path ).FromString( chromiumDir + "/locales" );
+	// TODO(winter): Disabled since they don't work in CEF 131+ (for now)
+	// https://github.com/chromiumembedded/cef/issues/3749
+	//CefString( &settings.resources_dir_path ).FromString( chromiumDir );
+	//CefString( &settings.locales_dir_path ).FromString( chromiumDir + "/locales" );
 
 	settings.multi_threaded_message_loop = true;
 #elif __linux__
@@ -188,8 +190,10 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 #endif
 
 	// GMOD: GO - We use the same resources with 32-bit and 64-bit builds, so always use the 32-bit bin path for them
-	CefString( &settings.resources_dir_path ).FromString( strBaseDir + "/bin/linux32/chromium" );
-	CefString( &settings.locales_dir_path ).FromString( strBaseDir + "/bin/linux32/chromium/locales" );
+	// TODO(winter): Disabled since they don't work in CEF 131+ (for now)
+	// https://github.com/chromiumembedded/cef/issues/3749
+	//CefString( &settings.resources_dir_path ).FromString( strBaseDir + "/bin/linux32/chromium" );
+	//CefString( &settings.locales_dir_path ).FromString( strBaseDir + "/bin/linux32/chromium/locales" );
 
 	settings.multi_threaded_message_loop = true;
 #elif __APPLE__

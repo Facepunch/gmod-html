@@ -78,6 +78,7 @@ public:
 	void OnBeforeClose( CefRefPtr<CefBrowser> browser ) override;
 	bool OnBeforePopup( CefRefPtr<CefBrowser>,
 		CefRefPtr<CefFrame> frame,
+		int,
 		const CefString& targetUrl,
 		const CefString&,
 		CefLifeSpanHandler::WindowOpenDisposition targetDisposition,
@@ -166,6 +167,8 @@ public:
 		FileDialogMode,
 		const CefString&,
 		const CefString&,
+		const std::vector<CefString>&,
+		const std::vector<CefString>&,
 		const std::vector<CefString>&,
 		CefRefPtr<CefFileDialogCallback> callback ) override;
 

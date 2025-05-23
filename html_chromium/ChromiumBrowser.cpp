@@ -576,6 +576,7 @@ void ChromiumBrowser::OnBeforeClose( CefRefPtr<CefBrowser> browser )
 
 bool ChromiumBrowser::OnBeforePopup( CefRefPtr<CefBrowser>,
 	CefRefPtr<CefFrame> frame,
+	int,
 	const CefString& targetUrl,
 	const CefString&,
 	CefLifeSpanHandler::WindowOpenDisposition targetDisposition,
@@ -988,6 +989,8 @@ bool ChromiumBrowser::OnFileDialog( CefRefPtr<CefBrowser>,
 	FileDialogMode,
 	const CefString&,
 	const CefString&,
+	const std::vector<CefString>&,
+	const std::vector<CefString>&,
 	const std::vector<CefString>&,
 	CefRefPtr<CefFileDialogCallback> callback )
 {
