@@ -41,6 +41,16 @@ If you only have VS Build Tools, use this command in "Developer Command Prompt f
 msbuild /p:Configuration=Release INSTALL.vcxproj
 ```
 
+#### Converting debug symbols to Breakpad symbols
+```powershell
+cd ../dist
+dir . -Filter *.pdb -Recurse | %{ dump_syms -o "$($_.FullName).sym" $_.FullName }
+dir . -Filter *.pdb.sym -Recurse | Rename-Item -NewName { $_.FullName -replace '\.pdb.sym$','.sym' }
+```
+Optionally cleanup platform symbols:
+```powershell
+dir . -Filter *.pdb -Recurse | Remove-Item -Path {$_.FullName}
+```
 
 ### Linux
 #### Requirements
@@ -57,6 +67,20 @@ make && make install
 
 This will place a complete build into the `dist` folder by default.
 
+#### Stripping / Separating / Converting debug symbols to Breakpad symbols
+```bash
+cd ../dist/linux64-Release/GarrysMod/bin/linux64
+find *.so *.so.1 gmod chrome-sandbox chromium_process -type f -exec objcopy --only-keep-debug {} {}.debug \; -exec strip --strip-debug --strip-unneeded {} \;
+find *.debug -type f -exec dump_syms -o {}.sym {} \;
+for file in *.debug.sym; do
+	mv "$file" "$(basename "$file" .debug.sym).sym"
+done
+```
+Optionally cleanup platform symbols:
+```bash
+rm *.debug
+```
+
 ### macOS
 #### Requirements
 - Ninja
@@ -71,6 +95,11 @@ ninja && ninja install
 ```
 
 This will place a complete build into the `dist` folder by default.
+
+#### Stripping / Separating debug symbols
+```
+TODO
+```
 
 ## TODO
 - Dynamic loading of the HTML implementation. Atm we just use dylib() or LoadLibrary() in each host which is kind of lame. It'd be nice to simplify it.

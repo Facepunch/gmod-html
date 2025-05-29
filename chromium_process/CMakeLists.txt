@@ -128,3 +128,10 @@ else()
 		endif()
 	endforeach()
 endif()
+
+# Always generate debug symbols
+if(OS_LINUX OR OS_MAC)
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g")
+elseif(OS_WINDOWS)
+	target_link_options(${TARGET} PUBLIC /DEBUG)
+endif()

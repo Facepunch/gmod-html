@@ -22,3 +22,8 @@ endif()
 set_target_properties(${TARGET} PROPERTIES INSTALL_RPATH "$ORIGIN")
 set_target_properties(${TARGET} PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
 set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME "gmod")
+
+# Always generate debug symbols
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux" OR "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g")
+endif()

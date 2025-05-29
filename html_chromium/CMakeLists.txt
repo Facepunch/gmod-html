@@ -58,3 +58,10 @@ elseif(OS_LINUX)
 elseif(OS_MAC)
 	install(TARGETS ${TARGET} DESTINATION "${INSTALL_OUT_DIR}/GarrysMod_Signed.app/Contents/MacOS")
 endif()
+
+# Always generate debug symbols
+if(OS_LINUX OR OS_MAC)
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g")
+elseif(OS_WINDOWS)
+	target_link_options(${TARGET} PUBLIC /DEBUG)
+endif()
