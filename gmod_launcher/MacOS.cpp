@@ -1,20 +1,20 @@
+#include <sys/syslimits.h>
 #include <mach-o/dyld.h>
 #include <stdio.h>
 #include <string.h>
 #include <dlfcn.h>
 #include <unistd.h>
 
-#define REALPATH_BUF_SIZE 4096 // NOTE: Original has 1024
 typedef int (*LauncherMain_t)(int, char**);
 
 int main(int argc, char** argv)
 {
-	char realPathOut[REALPATH_BUF_SIZE];
+	char realPathOut[PATH_MAX];
 	unsigned int realPathSizeUInt = sizeof(realPathOut);
 	int returnCode;
 	char *unused;
 
-	memset(realPathOut, 0, REALPATH_BUF_SIZE);
+	memset(realPathOut, 0, PATH_MAX);
 	returnCode = _NSGetExecutablePath(realPathOut, &realPathSizeUInt);
 	if (returnCode != 0) {
 		puts("_NSGetExecutablePath failed");

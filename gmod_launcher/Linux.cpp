@@ -1,3 +1,4 @@
+#include <linux/limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -7,7 +8,6 @@
 #include <sys/wait.h>
 #include <sched.h>
 
-#define REALPATH_BUF_SIZE 4096
 typedef int (*LauncherMain_t)(int, char**);
 
 char has_namespace_support = 0x0;
@@ -48,7 +48,7 @@ void calc_has_namespace_support()
 
 int main(int argc, char** argv)
 {
-	char realPathOut[4104];
+	char realPathOut[PATH_MAX];
 	char *unused;
 
 	if (getenv("container") || getenv("APPIMAGE") || getenv("SNAP")) {
@@ -58,7 +58,7 @@ int main(int argc, char** argv)
 		calc_has_namespace_support();
 	}
 
-	memset(realPathOut, 0, REALPATH_BUF_SIZE);
+	memset(realPathOut, 0, PATH_MAX);
 	realpath("/proc/self/exe", realPathOut);
 	unused = strrchr(realPathOut, '/');
 
