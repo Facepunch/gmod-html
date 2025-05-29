@@ -5,9 +5,9 @@
 #include <unistd.h>
 
 #define REALPATH_BUF_SIZE 4096 // NOTE: Original has 1024
-typedef int (*LauncherMain_t)(int argc, char **argv);
+typedef int (*LauncherMain_t)(int, char**);
 
-int main(int argc, char *argv[])
+int main(int argc, char** argv)
 {
 	char realPathOut[REALPATH_BUF_SIZE];
 	unsigned int realPathSizeUInt = sizeof(realPathOut);

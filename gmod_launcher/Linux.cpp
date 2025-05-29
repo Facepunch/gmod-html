@@ -8,7 +8,7 @@
 #include <sched.h>
 
 #define REALPATH_BUF_SIZE 4096
-typedef int (*LauncherMain_t)(int argc, char **argv);
+typedef int (*LauncherMain_t)(int, char**);
 
 char has_namespace_support = 0x0;
 
@@ -46,7 +46,7 @@ void calc_has_namespace_support()
 	return;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char** argv)
 {
 	char realPathOut[4104];
 	char *unused;
