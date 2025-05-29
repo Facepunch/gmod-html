@@ -1,4 +1,4 @@
-#include <linux/limits.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -48,8 +48,8 @@ void calc_has_namespace_support()
 
 int main(int argc, char** argv)
 {
-	char realPathOut[PATH_MAX];
-	char *unused;
+	char executablePath[PATH_MAX];
+	int returnCode;
 
 	if (getenv("container") || getenv("APPIMAGE") || getenv("SNAP")) {
 		printf("Container detected, overriding \"has_namespace_support\"...\n");
@@ -58,41 +58,35 @@ int main(int argc, char** argv)
 		calc_has_namespace_support();
 	}
 
-	memset(realPathOut, 0, PATH_MAX);
-	realpath("/proc/self/exe", realPathOut);
-	unused = strrchr(realPathOut, '/');
+	memset(executablePath, 0, PATH_MAX);
+	realpath("/proc/self/exe", executablePath);
 
-	if (unused != (char *)0x0) {
-		*unused = '\0';
-		unused = strrchr(realPathOut, '/');
-
-		if (unused != (char *)0x0) {
-			*unused = '\0';
-			unused = strrchr(realPathOut, '/');
-
-			if (unused != (char *)0x0) {
-				*unused = '\0';
-			}
+	for (int i = 1; i <= 3; ++i) {
+		char *lastSlash = strrchr(executablePath, '/');
+		if (lastSlash != (char *)0) {
+			*lastSlash = (char)0;
 		}
 	}
 
-	chdir(realPathOut);
+	returnCode = chdir(executablePath);
+	if (returnCode != 0) {
+		fprintf(stderr, "Failed to change directory (%s)\n", executablePath);
+		return 1;
+	}
 
 	void *launcherHandle = dlopen("launcher_client.so", RTLD_NOW);
 	if (!launcherHandle) {
 		char *errorMsg = dlerror();
 		fprintf(stderr, "Failed to load the launcher (%s)\n", errorMsg);
 		return 1;
-	} else {
-		LauncherMain_t launcherMainFn = (LauncherMain_t)dlsym(launcherHandle, "LauncherMain");
-
-		if (!launcherMainFn) {
-			fprintf(stderr, "Failed to load the launcher entry proc\n");
-			return 1;
-		} else {
-			return launcherMainFn(argc, argv);
-		}
-
-		//dlclose(launcherHandle);
 	}
+
+	LauncherMain_t launcherMainFn = (LauncherMain_t)dlsym(launcherHandle, "LauncherMain");
+
+	if (!launcherMainFn) {
+		fprintf(stderr, "Failed to load the launcher entry proc\n");
+		return 1;
+	}
+
+	return launcherMainFn(argc, argv);
 }
