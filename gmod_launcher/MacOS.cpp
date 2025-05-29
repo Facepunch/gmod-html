@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 		LauncherMain_t launcherMainFn = (LauncherMain_t)dlsym(launcherHandle, "LauncherMain");
 
 		if (!launcherMainFn) {
-			puts(stderr, "Failed to load the launcher entry proc\n");
+			puts("Failed to load the launcher entry proc\n");
 			return 1;
 		} else {
 			return launcherMainFn(argc, argv);
