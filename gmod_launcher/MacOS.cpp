@@ -10,11 +10,12 @@ typedef int (*LauncherMain_t)(int argc, char **argv);
 int main(int argc, char *argv[])
 {
 	char realPathOut[REALPATH_BUF_SIZE];
+	unsigned int realPathSizeUInt = sizeof(realPathOut);
 	int returnCode;
 	char *unused;
 
 	memset(realPathOut, 0, REALPATH_BUF_SIZE);
-	returnCode = _NSGetExecutablePath(realPathOut, REALPATH_BUF_SIZE);
+	returnCode = _NSGetExecutablePath(realPathOut, &realPathSizeUInt);
 	if (returnCode != 0) {
 		puts("_NSGetExecutablePath failed");
 	}
@@ -49,7 +50,7 @@ int main(int argc, char *argv[])
 		LauncherMain_t launcherMainFn = (LauncherMain_t)dlsym(launcherHandle, "LauncherMain");
 
 		if (!launcherMainFn) {
-			fprintf(stderr, "Failed to load the launcher entry proc\n");
+			puts(stderr, "Failed to load the launcher entry proc\n");
 			return 1;
 		} else {
 			return launcherMainFn(argc, argv);
