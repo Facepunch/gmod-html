@@ -6,6 +6,27 @@ set(SOURCES
 	StubSystem.h)
 
 add_library(html_stub SHARED ${SOURCES})
+if (DUMP_SYMS)
+	if(OS_LINUX OR OS_MAC)
+		add_custom_command(
+			TARGET html_stub
+			POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E echo \"Dumping symbols for html_stub\"
+			COMMAND "${DUMP_SYMS}" -s "${CMAKE_SOURCE_DIR}/syms" "$<TARGET_FILE:html_stub>"
+			COMMAND "${STRIP}" $STRIP_ARGS "$<TARGET_FILE:html_stub>"
+			VERBATIM
+		)
+	else()
+		add_custom_command(
+			TARGET html_stub
+			POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E echo \"Dumping symbols for html_stub\"
+			COMMAND "${DUMP_SYMS}" -s "${CMAKE_SOURCE_DIR}/syms" "$<TARGET_FILE:html_stub>"
+			VERBATIM
+		)
+	endif()
+endif()
+
 add_dependencies(html_stub html)
 target_link_libraries(html_stub html)
 

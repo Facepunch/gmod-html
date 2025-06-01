@@ -6,6 +6,7 @@
 
 # Distribution directories
 /dist
+/syms
 
 # Dependencies that are downloaded/installed separately
 /thirdparty/cef3/**
@@ -14,3 +15,9 @@
 # IDE files
 /.vscode
 /.idea
+
+# Misc OS files
+**/.DS_Store
+
+# direnv
+/.direnv

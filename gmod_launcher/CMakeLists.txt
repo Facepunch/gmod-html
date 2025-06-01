@@ -11,6 +11,26 @@ elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
 endif()
 
 add_executable(${TARGET} ${SOURCES})
+if (DUMP_SYMS)
+	if(OS_LINUX OR OS_MAC)
+		add_custom_command(
+			TARGET ${TARGET}
+			POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E echo \"Dumping symbols for ${TARGET}\"
+			COMMAND "${DUMP_SYMS}" -s "${CMAKE_SOURCE_DIR}/syms" "$<TARGET_FILE:${TARGET}>"
+			COMMAND "${STRIP}" $STRIP_ARGS "$<TARGET_FILE:${TARGET}>"
+			VERBATIM
+		)
+	else()
+		add_custom_command(
+			TARGET ${TARGET}
+			POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E echo \"Dumping symbols for ${TARGET}\"
+			COMMAND "${DUMP_SYMS}" -s "${CMAKE_SOURCE_DIR}/syms" "$<TARGET_FILE:${TARGET}>"
+			VERBATIM
+		)
+	endif()
+endif()
 target_link_libraries(${TARGET} ${CMAKE_DL_LIBS})
 
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")

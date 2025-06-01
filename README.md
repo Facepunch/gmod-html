@@ -94,6 +94,11 @@ cmake -G Ninja -D CMAKE_BUILD_TYPE=Release -D CMAKE_POLICY_VERSION_MINIMUM=3.5 .
 ninja && ninja install
 ```
 
+##### Apple Silicon
+```sh
+cmake -G Ninja -D CMAKE_BUILD_TYPE=Release -D CMAKE_POLICY_VERSION_MINIMUM=3.5 -D CMAKE_APPLE_SILICON_PROCESSOR=x86_64 ..
+```
+
 This will place a complete build into the `dist` folder by default.
 
 #### Stripping / Separating debug symbols

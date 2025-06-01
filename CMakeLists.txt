@@ -4,6 +4,8 @@ set(CMAKE_CONFIGURATION_TYPES Debug Release)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "" FORCE)
+set(CMAKE_C_ARCHIVE_FINISH   "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+set(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
 #set(CMAKE_SYSTEM_VERSION "10.0.26100.0") # Windows SDK
 
 project(gmod_html)
@@ -34,6 +36,17 @@ endif()
 
 set(CEF_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cef3/cef_binary_${CEF_VERSION}_${CEF_PLATFORM}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CEF_ROOT}/cmake")
+
+find_program(DUMP_SYMS dump_syms)
+if(DUMP_SYMS AND (OS_LINUX OR OS_MAC))
+	find_program(STRIP strip REQUIRED)
+	if(OS_LINUX)
+		set(STRIP_ARGS "-S --strip-unneeded")
+	else()
+		set(STRIP_ARGS "-S")
+	endif()
+endif()
+
 
 find_package(CEF REQUIRED)
 add_subdirectory(thirdparty/glad EXCLUDE_FROM_ALL)

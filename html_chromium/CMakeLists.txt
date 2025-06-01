@@ -28,6 +28,26 @@ if(OS_LINUX OR OS_WINDOWS)
 endif()
 
 add_library(${TARGET} SHARED ${SOURCES})
+if (DUMP_SYMS)
+	if(OS_LINUX OR OS_MAC)
+		add_custom_command(
+			TARGET ${TARGET}
+			POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E echo \"Dumping symbols for ${TARGET}\"
+			COMMAND "${DUMP_SYMS}" -s "${CMAKE_SOURCE_DIR}/syms" "$<TARGET_FILE:${TARGET}>"
+			COMMAND "${STRIP}" $STRIP_ARGS "$<TARGET_FILE:${TARGET}>"
+			VERBATIM
+		)
+	else()
+		add_custom_command(
+			TARGET ${TARGET}
+			POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E echo \"Dumping symbols for ${TARGET}\"
+			COMMAND "${DUMP_SYMS}" -s "${CMAKE_SOURCE_DIR}/syms" "$<TARGET_FILE:${TARGET}>"
+			VERBATIM
+		)
+	endif()
+endif()
 SET_LIBRARY_TARGET_PROPERTIES(${TARGET})
 add_dependencies(${TARGET} html libcef_dll_wrapper)
 
