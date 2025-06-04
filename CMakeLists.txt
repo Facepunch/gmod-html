@@ -4,15 +4,17 @@ set(CMAKE_CONFIGURATION_TYPES Debug Release)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "" FORCE)
+#set(CMAKE_SYSTEM_VERSION "10.0.26100.0") # Windows SDK
+
+# TODO: These are fucked somehow (maybe only on non-macOS systems?)
 set(CMAKE_C_ARCHIVE_FINISH   "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
 set(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
-#set(CMAKE_SYSTEM_VERSION "10.0.26100.0") # Windows SDK
 
 project(gmod_html)
 
 set_property(GLOBAL PROPERTY OS_FOLDERS ON)
 
-set(CEF_VERSION "137.0.8+gaaaa0bf+chromium-137.0.7151.56")
+set(CEF_VERSION "137.0.10+g7e14fe1+chromium-137.0.7151.69")
 
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
 	if("${PROJECT_ARCH}" STREQUAL "arm64")

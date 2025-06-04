@@ -11,7 +11,7 @@ Everything you need is in the **Standard Distribution**. If you need to debug th
 ## Currently supported CEF version
 The current version of CEF that's supported by this library is:
 
-- **137.0.8+gaaaa0bf+chromium-137.0.7151.56**
+- **137.0.10+g7e14fe1+chromium-137.0.7151.69**
 
 This is not the only version that could be supported, but it's the version that's currently configured and tested to work.
 
