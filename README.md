@@ -54,7 +54,7 @@ dir . -Filter *.pdb -Recurse | Remove-Item -Path {$_.FullName}
 
 ### Linux
 #### Requirements
-- A version of GCC/G++ or Clang/Clang++ with C++11 support
+- A version of GCC/G++ or Clang/Clang++ with C++17 support
 - CMake 3.19 or newer
 
 #### Compiling
