@@ -127,16 +127,16 @@ public:
 		return this;
 	}
 
+	bool OnOpenURLFromTab( CefRefPtr<CefBrowser> browser,
+		CefRefPtr<CefFrame> frame,
+		const CefString& target_url,
+		CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+		bool user_gesture ) override;
+
 	bool OnBeforeBrowse( CefRefPtr<CefBrowser>,
 		CefRefPtr<CefFrame>,
 		CefRefPtr<CefRequest> request,
 		bool,
-		bool ) override;
-
-	bool OnOpenURLFromTab( CefRefPtr<CefBrowser>,
-		CefRefPtr<CefFrame> frame,
-		const CefString &targetUrl,
-		CefLifeSpanHandler::WindowOpenDisposition targetDisposition,
 		bool ) override;
 
 	//

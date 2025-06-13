@@ -203,37 +203,49 @@ static bool JSValuesToCefList( CefRefPtr<CefListValue> outList, const std::vecto
 
 static int GetModifiers( const IHtmlClient::EventModifiers modifiers )
 {
-	int gameModifiers = static_cast<int>(modifiers);
+	int gameModifiers = static_cast<int>( modifiers );
 	int chromiumModifiers = 0;
 
-	if (gameModifiers & static_cast<int>(IHtmlClient::EventModifiers::Shift)) {
-		chromiumModifiers |= EVENTFLAG_SHIFT_DOWN;
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Shift ) ) {
+		chromiumModifiers |= EVENTFLAG_SHIFT_DOWN | EVENTFLAG_IS_LEFT;
 	}
 
-	if (gameModifiers & static_cast<int>(IHtmlClient::EventModifiers::Control)) {
-		chromiumModifiers |= EVENTFLAG_CONTROL_DOWN;
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::ShiftR ) ) {
+		chromiumModifiers |= EVENTFLAG_SHIFT_DOWN | EVENTFLAG_IS_RIGHT;
 	}
 
-	if (gameModifiers & static_cast<int>(IHtmlClient::EventModifiers::Alt)) {
-		chromiumModifiers |= EVENTFLAG_ALT_DOWN;
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Control ) ) {
+		chromiumModifiers |= EVENTFLAG_CONTROL_DOWN | EVENTFLAG_IS_LEFT;
 	}
 
-	if (gameModifiers & static_cast<int>(IHtmlClient::EventModifiers::LeftMouse)) {
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::ControlR ) ) {
+		chromiumModifiers |= EVENTFLAG_CONTROL_DOWN | EVENTFLAG_IS_RIGHT;
+	}
+
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Alt ) ) {
+		chromiumModifiers |= EVENTFLAG_ALT_DOWN | EVENTFLAG_IS_LEFT;
+	}
+
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::AltGr ) ) {
+		chromiumModifiers |= EVENTFLAG_ALT_DOWN | EVENTFLAG_IS_RIGHT; // EVENTFLAG_ALTGR_DOWN undefined on Linux?
+	}
+
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::LeftMouse ) ) {
 		chromiumModifiers |= EVENTFLAG_LEFT_MOUSE_BUTTON;
 	}
 
-	if (gameModifiers & static_cast<int>(IHtmlClient::EventModifiers::MiddleMouse)) {
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::MiddleMouse ) ) {
 		chromiumModifiers |= EVENTFLAG_MIDDLE_MOUSE_BUTTON;
 	}
 
-	if (gameModifiers & static_cast<int>(IHtmlClient::EventModifiers::RightMouse)) {
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::RightMouse ) ) {
 		chromiumModifiers |= EVENTFLAG_RIGHT_MOUSE_BUTTON;
 	}
 
-	if (gameModifiers & static_cast<int>(IHtmlClient::EventModifiers::OSX_Cmd)) {
-		chromiumModifiers |= EVENTFLAG_COMMAND_DOWN;
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Numpad ) ) {
+		chromiumModifiers |= EVENTFLAG_IS_KEY_PAD;
 	}
-	
+
 	return chromiumModifiers;
 }
 
@@ -299,74 +311,37 @@ void ChromiumBrowser::SetFocused( bool hasFocus )
 }
 
 // Validate against https://dvcs.w3.org/hg/d4e/raw-file/tip/key-event-test.html
-void ChromiumBrowser::SendKeyEvent(IHtmlClient::KeyEvent keyEvent)
+void ChromiumBrowser::SendKeyEvent( IHtmlClient::KeyEvent keyEvent )
 {
-	if (m_BrowserHost == nullptr) {
-		return;
-	}
-
-	int modifiers = GetModifiers(keyEvent.modifiers);
-	int native_key_code = keyEvent.native_key_code;
-
-#if defined(_WIN32) || defined(__linux__)
-	// TODO/BUG(winter): IHtmlClient gives us the wrong native_key_code on Linux. Facepunch needs to PROPERLY fix this!
-	// HACK: Use Chromium's `DomCodeToNativeKeycode` to "generate" the native_key_code
-	// Will be converted back, in Chromium, with `NativeKeycodeToDomCode`.
-	bool lastkeydown_null = m_LastKeyEvent.character == 0x0 && m_LastKeyEvent.windows_key_code == 0x0 && m_LastKeyEvent.native_key_code == 0x0;
-
-	ui::DomCode domCode = WindowsKeyCodeToDomCode(keyEvent.windows_key_code, lastkeydown_null);
-	native_key_code = ui::KeycodeConverter::DomCodeToNativeKeycode(domCode);
-#endif
-
-	//LOG(ERROR) << "WINDOWS: " << keyEvent.windows_key_code;
-	//LOG(ERROR) << "NATIVE: " << native_key_code;
-	//LOG(ERROR) << "CHAR: " << keyEvent.key_char;
-	//LOG(ERROR) << "MODIFIERS: " << modifiers;
-
 	CefKeyEvent chromiumKeyEvent;
-	chromiumKeyEvent.modifiers = modifiers;
+	chromiumKeyEvent.modifiers = GetModifiers( keyEvent.modifiers );
 
-	switch (keyEvent.eventType)
+	switch ( keyEvent.eventType )
 	{
-	case IHtmlClient::KeyEvent::Type::KeyChar:
-		//LOG(ERROR) << "KEYEVENT_CHAR";
-
-		chromiumKeyEvent.type = KEYEVENT_CHAR;
-		chromiumKeyEvent.character = static_cast<char16_t>(keyEvent.key_char);
-		chromiumKeyEvent.unmodified_character = static_cast<char16_t>(keyEvent.key_char);
-#ifdef __APPLE__
-		chromiumKeyEvent.windows_key_code = 0;
-		chromiumKeyEvent.native_key_code = native_key_code;
+		case IHtmlClient::KeyEvent::Type::KeyChar:
+			chromiumKeyEvent.type = KEYEVENT_CHAR;
+			chromiumKeyEvent.character = static_cast<char16>( keyEvent.key_char );
+			chromiumKeyEvent.unmodified_character = static_cast<char16>( keyEvent.key_char );
+#ifdef OSX
+			chromiumKeyEvent.windows_key_code = 0;
 #else
-		chromiumKeyEvent.windows_key_code = keyEvent.windows_key_code;
-		chromiumKeyEvent.native_key_code = native_key_code;
+			chromiumKeyEvent.windows_key_code = keyEvent.windows_key_code;
 #endif
-		break;
-	case IHtmlClient::KeyEvent::Type::KeyDown:
-		//LOG(ERROR) << "KEYEVENT_RAWKEYDOWN";
-		chromiumKeyEvent.type = KEYEVENT_RAWKEYDOWN; // TODO: Fix repeating detection with KEYEVENT_KEYDOWN(?)
-		chromiumKeyEvent.windows_key_code = keyEvent.windows_key_code;
-		chromiumKeyEvent.native_key_code = native_key_code;
-		break;
-	case IHtmlClient::KeyEvent::Type::KeyUp:
-		//LOG(ERROR) << "KEYEVENT_KEYUP";
-		chromiumKeyEvent.type = KEYEVENT_KEYUP;
-		chromiumKeyEvent.windows_key_code = keyEvent.windows_key_code;
-		chromiumKeyEvent.native_key_code = native_key_code;
-		break;
+			chromiumKeyEvent.native_key_code = keyEvent.native_key_code;
+			break;
+		case IHtmlClient::KeyEvent::Type::KeyDown:
+			chromiumKeyEvent.type = KEYEVENT_KEYDOWN;
+			chromiumKeyEvent.windows_key_code = keyEvent.windows_key_code;
+			chromiumKeyEvent.native_key_code = keyEvent.native_key_code;
+			break;
+		case IHtmlClient::KeyEvent::Type::KeyUp:
+			chromiumKeyEvent.type = KEYEVENT_KEYUP;
+			chromiumKeyEvent.windows_key_code = keyEvent.windows_key_code;
+			chromiumKeyEvent.native_key_code = keyEvent.native_key_code;
+			break;
 	}
 
-	//chromiumKeyEvent.character = 0x0;
-	//chromiumKeyEvent.unmodified_character = 0x0;
-	//chromiumKeyEvent.windows_key_code = 0x0;
-	//chromiumKeyEvent.native_key_code = 0x0;
-
-	m_LastKeyEvent = chromiumKeyEvent;
-
-	// TODO: There has to be *something* to send to CEF for this to make any sense
-	//if (chromiumKeyEvent.character != 0x0 || chromiumKeyEvent.windows_key_code != 0x0 || chromiumKeyEvent.native_key_code != 0x0) {
-		m_BrowserHost->SendKeyEvent(chromiumKeyEvent);
-	//}
+	m_BrowserHost->SendKeyEvent( chromiumKeyEvent );
 }
 
 void ChromiumBrowser::SendMouseMoveEvent( IHtmlClient::MouseEvent gmodMouseEvent, bool mouseLeave )
@@ -765,6 +740,8 @@ void ChromiumBrowser::GetViewRect( CefRefPtr<CefBrowser>, CefRect& rect )
 
 void ChromiumBrowser::OnPopupShow( CefRefPtr<CefBrowser>, bool show )
 {
+	if ( !m_BrowserHost ) return;
+
 	if ( !show )
 	{
 		m_PopupX = 0;
@@ -854,6 +831,31 @@ void ChromiumBrowser::OnAcceleratedPaint(CefRefPtr<CefBrowser> browser, CefRende
 //
 // CefRequestHandler interface
 //
+bool ChromiumBrowser::OnOpenURLFromTab( CefRefPtr<CefBrowser>,
+	CefRefPtr<CefFrame> frame,
+	const CefString& targetUrl,
+	CefLifeSpanHandler::WindowOpenDisposition targetDisposition,
+	bool user_gesture )
+{
+	// Does similar things like OnBeforePopup, for example middle mouse clicks
+	if ( targetDisposition == WOD_NEW_POPUP || targetDisposition == WOD_NEW_FOREGROUND_TAB || targetDisposition == WOD_NEW_BACKGROUND_TAB )
+	{
+		CefString sourceUrl = frame->GetURL();
+
+		MessageQueue::Message msg;
+		msg.type = MessageQueue::Type::OnCreateChildView;
+		msg.string1 = sourceUrl.ToString();
+		msg.string2 = targetUrl.ToString();
+		msg.integer = static_cast<int>( targetDisposition == WOD_NEW_POPUP );
+		QueueMessage( std::move( msg ) );
+
+		// Don't create the popup
+		return true;
+	}
+
+	return false;
+}
+
 bool ChromiumBrowser::OnBeforeBrowse( CefRefPtr<CefBrowser>,
 	CefRefPtr<CefFrame>,
 	CefRefPtr<CefRequest> request,
@@ -950,25 +952,6 @@ void ChromiumBrowser::OnProtocolExecution( CefRefPtr<CefBrowser>,
 	bool& allow_os_execution )
 {
 	allow_os_execution = false;
-}
-
-bool ChromiumBrowser::OnOpenURLFromTab( CefRefPtr<CefBrowser>,
-	CefRefPtr<CefFrame> frame,
-	const CefString &targetUrl,
-	CefLifeSpanHandler::WindowOpenDisposition targetDisposition,
-	bool )
-{
-	CefString sourceUrl = frame->GetURL();
-
-	MessageQueue::Message msg;
-	msg.type = MessageQueue::Type::OnCreateChildView;
-	msg.string1 = sourceUrl.ToString();
-	msg.string2 = targetUrl.ToString();
-	msg.integer = static_cast<int>( targetDisposition == CEF_WOD_NEW_POPUP );
-	QueueMessage( std::move( msg ) );
-
-	// Don't create the popup
-	return true;
 }
 
 //

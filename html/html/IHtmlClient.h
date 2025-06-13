@@ -18,6 +18,10 @@ public:
 		MiddleMouse = (1 << 4),
 		RightMouse = (1 << 5),
 		OSX_Cmd = (1 << 6),
+		ShiftR = (1 << 7),
+		ControlR = (1 << 8),
+		AltGr = (1 << 9),
+		Numpad = (1 << 10)
 	};
 
 	struct KeyEvent
