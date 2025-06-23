@@ -1,4 +1,4 @@
-﻿
+
 #include <iostream>
 //#include <chrono>
 //#include <thread>
@@ -320,8 +320,8 @@ void ChromiumBrowser::SendKeyEvent( IHtmlClient::KeyEvent keyEvent )
 	{
 		case IHtmlClient::KeyEvent::Type::KeyChar:
 			chromiumKeyEvent.type = KEYEVENT_CHAR;
-			chromiumKeyEvent.character = static_cast<char16>( keyEvent.key_char );
-			chromiumKeyEvent.unmodified_character = static_cast<char16>( keyEvent.key_char );
+			chromiumKeyEvent.character = static_cast<char16_t>( keyEvent.key_char );
+			chromiumKeyEvent.unmodified_character = static_cast<char16_t>( keyEvent.key_char );
 #ifdef OSX
 			chromiumKeyEvent.windows_key_code = 0;
 #else
@@ -838,7 +838,7 @@ bool ChromiumBrowser::OnOpenURLFromTab( CefRefPtr<CefBrowser>,
 	bool user_gesture )
 {
 	// Does similar things like OnBeforePopup, for example middle mouse clicks
-	if ( targetDisposition == WOD_NEW_POPUP || targetDisposition == WOD_NEW_FOREGROUND_TAB || targetDisposition == WOD_NEW_BACKGROUND_TAB )
+	if ( targetDisposition == CEF_WOD_NEW_POPUP || targetDisposition == CEF_WOD_NEW_FOREGROUND_TAB || targetDisposition == CEF_WOD_NEW_BACKGROUND_TAB )
 	{
 		CefString sourceUrl = frame->GetURL();
 
@@ -846,7 +846,7 @@ bool ChromiumBrowser::OnOpenURLFromTab( CefRefPtr<CefBrowser>,
 		msg.type = MessageQueue::Type::OnCreateChildView;
 		msg.string1 = sourceUrl.ToString();
 		msg.string2 = targetUrl.ToString();
-		msg.integer = static_cast<int>( targetDisposition == WOD_NEW_POPUP );
+		msg.integer = static_cast<int>( targetDisposition == CEF_WOD_NEW_POPUP );
 		QueueMessage( std::move( msg ) );
 
 		// Don't create the popup
