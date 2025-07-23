@@ -243,7 +243,7 @@ void ChromiumApp::OnContextCreated( CefRefPtr<CefBrowser> browser, CefRefPtr<Cef
 	// If this is a web worker, we want nothing to do with it
 	if ( !browser )
 		return;
-	
+
 	for ( auto& pair : m_RegisteredFunctions )
 	{
 		RegisterFunctionInFrame( frame, pair.first, pair.second );

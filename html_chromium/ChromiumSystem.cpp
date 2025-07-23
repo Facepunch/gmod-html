@@ -105,7 +105,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	CefSettings settings;
 
 	std::string strBaseDir = pBaseDir;
-	
+
 	//settings.remote_debugging_port = 9222;
 	settings.remote_debugging_port = 0;
 	settings.windowless_rendering_enabled = true;
@@ -327,7 +327,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 void ChromiumSystem::Shutdown()
 {
 	CefShutdown();
-	
+
 	// Delete temporary ChromiumCacheMultirun if it exists
 	// TODO(winter): For some reason CEF still hasn't released the handles it has for these files even though CefShutdown has finished and the lockfile is gone...
 	/*
