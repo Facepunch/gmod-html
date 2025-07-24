@@ -51,8 +51,8 @@ int main(int argc, char** argv)
 	char executablePath[PATH_MAX];
 	int returnCode;
 
-	if (getenv("container") || getenv("APPIMAGE") || getenv("SNAP")) {
-		printf("Container detected, overriding \"has_namespace_support\"...\n");
+	if (getenv("GMOD_CEF_NO_SANDBOX") || getenv("container") || getenv("APPIMAGE") || getenv("SNAP")) {
+		printf("Container detected or sandbox disabled, overriding \"has_namespace_support\"...\n");
 		has_namespace_support = 1;
 	} else {
 		calc_has_namespace_support();

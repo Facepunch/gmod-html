@@ -90,5 +90,8 @@ add_subdirectory(example_host EXCLUDE_FROM_ALL)
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux" OR "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
 	add_subdirectory(gmod_launcher)
 endif()
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows" AND NOT (CMAKE_SIZEOF_VOID_P MATCHES 8))
+	add_subdirectory(gmod_32bit_redirector)
+endif()
 
 PRINT_CEF_CONFIG()

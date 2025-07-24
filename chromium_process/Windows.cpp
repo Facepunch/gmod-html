@@ -54,6 +54,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		}
 	}
 
+	// TODO: Unicode paths (GetModuleFileNameW, etc)
 	char executable_path[MAX_PATH] = { 0 };
 	GetModuleFileNameA(NULL, executable_path, MAX_PATH);
 
@@ -64,13 +65,40 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	executable_dir += "\\..\\..";
 #else
 	executable_dir += "\\..";
-	MessageBoxA(NULL, "You may encounter stability issues with GModCEFCodecFix in 32-bit mode. Please launch Garry's Mod in 64-bit mode instead if possible.", "32-bit Warning", 0);
+	MessageBoxA(NULL, "You may encounter stability issues with Garry's Mod in 32-bit.\n\nPlease consider using the x86-64 beta and launching in 64-bit mode if possible.", "32-bit Warning", 0);
 #endif
 
+	// NOTE: GMod's main branch does _chdir in launcher.dll, which will override this!
+	// We work around it in gmod_32bit_redirector by using -basedir
 	_chdir(executable_dir.c_str());
 
 	// Launch GarrysMod's main function from this process. We needed this so the "main" process could provide sandbox information above.
 	HMODULE hLauncher = LoadLibraryA("launcher.dll");
 	LauncherMain_t mainFn = (LauncherMain_t)(GetProcAddress(hLauncher, "LauncherMain"));
+
+	if (!mainFn) {
+		DWORD err = GetLastError();
+		LPVOID err_msg;
+
+		int err_format_result = FormatMessage(
+			FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL,
+			err,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			(LPWSTR) &err_msg,
+			0,
+			NULL
+		);
+
+		if (err_format_result == 0) {
+			MessageBoxW(NULL, L"<Couldn't format error message>", L"Launch Error: GetProcAddress", MB_ICONERROR);
+		} else {
+			MessageBoxW(NULL, (LPWSTR) err_msg, L"Launch Error: GetProcAddress", MB_ICONERROR);
+			LocalFree(err_msg);
+		}
+
+		return err;
+	}
+
 	return mainFn(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 }

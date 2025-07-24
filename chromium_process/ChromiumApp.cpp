@@ -181,8 +181,10 @@ void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, 
 	command_line->AppendSwitch( "disable-in-process-stack-traces" );
 
 	// Flatpak, AppImage, and Snap break sandboxing
+	// GMOD_CEF_NO_SANDBOX is for when we want to FORCE it off
 	// TODO(winter): It's not ideal to just outright turn off sandboxing...but Steam does it too, so
-	if (getenv("container") || getenv("APPIMAGE") || getenv("SNAP")) {
+	if (getenv("GMOD_CEF_NO_SANDBOX") || getenv("container") || getenv("APPIMAGE") || getenv("SNAP")) {
+		pResourceHandler->Message("Disabling Chromium sandbox...\n");
 		command_line->AppendSwitch("no-sandbox");
 	}
 #endif
