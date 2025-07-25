@@ -7,6 +7,10 @@
 #include "include/cef_parser.h"
 #include "cef_end.h"
 
+#ifdef _WIN32
+	#include <shellapi.h>
+#endif
+
 static bool CefValueToJSValue( JSValue& outValue, CefRefPtr<CefValue> inValue, int depth = 0 )
 {
 	if ( depth > 16 )
@@ -783,7 +787,7 @@ bool ChromiumBrowser::OnBeforeBrowse( CefRefPtr<CefBrowser>,
 	if ( m_OpenLinksExternally )
 	{
 #if defined( _WIN32 )
-		ShellExecute( NULL, "open", request->GetURL().ToString().c_str(), NULL, NULL, SW_SHOWNORMAL );
+		ShellExecuteA( NULL, "open", request->GetURL().ToString().c_str(), NULL, NULL, SW_SHOWNORMAL );
 #elif defined( __linux__ )
 		std::string strUrl = request->GetURL().ToString();
 		pid_t pid;

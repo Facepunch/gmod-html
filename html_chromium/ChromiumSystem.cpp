@@ -14,12 +14,8 @@
 #include "cef_end.h"
 
 #include <time.h>
-
-#ifdef _WIN32
-#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
-#endif
+#include <filesystem>
+namespace fs = std::filesystem;
 
 class ChromiumApp
 	: public CefApp
@@ -113,13 +109,13 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 #ifdef _WIN32
 	// Chromium will be sad if we don't resolve any NTFS junctions for it
 	// Is this really the only way Windows will let me do that?
-	auto hFile = CreateFile( strBaseDir.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL );
+	auto hFile = CreateFileA( strBaseDir.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL );
 	bool useTempDir = false;
 
 	if ( hFile != INVALID_HANDLE_VALUE )
 	{
 		char pathBuf[MAX_PATH] = { 0 };
-		if ( GetFinalPathNameByHandle( hFile, pathBuf, sizeof( pathBuf ), VOLUME_NAME_DOS ) )
+		if ( GetFinalPathNameByHandleA( hFile, pathBuf, sizeof( pathBuf ), VOLUME_NAME_DOS ) )
 		{
 			// If it's a network drive, we can't use it
 			if ( strstr( pathBuf, "\\\\?\\UNC" ) == pathBuf )
@@ -165,8 +161,8 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Windows NT; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36 GMod/13" );
 
 	// GMOD: GO - We use the same resources with 32-bit and 64-bit builds, so always use the 32-bit bin path for them
-	CefString( &settings.resources_dir_path ).FromString( chromiumDir );
-	CefString( &settings.locales_dir_path ).FromString( chromiumDir + "/locales" );
+	//CefString( &settings.resources_dir_path ).FromString( chromiumDir );
+	//CefString( &settings.locales_dir_path ).FromString( chromiumDir + "/locales" );
 
 	settings.multi_threaded_message_loop = true;
 #elif LINUX

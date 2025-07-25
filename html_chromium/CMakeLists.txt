@@ -1,39 +1,5 @@
-if(WIN32)
-	set(BINARIES
-		${CEF_PATH}/Release/chrome_elf.dll
-		${CEF_PATH}/Release/d3dcompiler_47.dll
-		${CEF_PATH}/Release/libcef.dll
-		${CEF_PATH}/Release/libEGL.dll
-		${CEF_PATH}/Release/libGLESv2.dll
-		${CEF_PATH}/Release/snapshot_blob.bin
-		${CEF_PATH}/Release/v8_context_snapshot.bin
-		${CEF_PATH}/Resources/icudtl.dat)
-elseif(UNIX AND NOT APPLE)
-	set(BINARIES
-		${CEF_PATH}/Release/chrome-sandbox
-		${CEF_PATH}/Release/libcef.so
-		${CEF_PATH}/Release/libEGL.so
-		${CEF_PATH}/Release/libGLESv2.so
-		${CEF_PATH}/Release/snapshot_blob.bin
-		${CEF_PATH}/Release/v8_context_snapshot.bin
-		${CEF_PATH}/Resources/icudtl.dat)
-else()
-	message(FATAL_ERROR "No IMPORTED_LOCATION for libcef")
-endif()
-
-set(RESOURCES
-	${CEF_PATH}/Resources/cef.pak
-	${CEF_PATH}/Resources/cef_100_percent.pak
-	${CEF_PATH}/Resources/cef_200_percent.pak
-	${CEF_PATH}/Resources/cef_extensions.pak
-	${CEF_PATH}/Resources/devtools_resources.pak)
-
-install(FILES ${BINARIES} DESTINATION ${GAME_BIN_DIR})
-install(FILES ${RESOURCES} DESTINATION ${CMAKE_BINARY_DIR}/bin/chromium)
-install(DIRECTORY ${CEF_PATH}/Resources/locales DESTINATION ${CMAKE_BINARY_DIR}/bin/chromium)
-
-# Actual lib
-set(SOURCES
+set(TARGET html_chromium)
+set(SOURCES 
 	cef_end.h
 	cef_start.h
 	ChromiumBrowser.cpp
@@ -51,9 +17,45 @@ set(SOURCES
 	ResourceHandler.cpp
 	ResourceHandler.h)
 
-# Lame
-include_directories(${CEF_PATH})
+if(OS_LINUX OR OS_WINDOWS)
+	ADD_LOGICAL_TARGET("libcef_lib" "${CEF_LIB_DEBUG}" "${CEF_LIB_RELEASE}")
+endif()
 
-add_library(html_chromium SHARED ${SOURCES})
-target_link_libraries(html_chromium html libcef_imp libcef_dll_wrapper)
-SET_TARGET_PROPERTIES(html_chromium PROPERTIES PREFIX "")
+add_library(${TARGET} SHARED ${SOURCES})
+SET_LIBRARY_TARGET_PROPERTIES(${TARGET})
+add_dependencies(${TARGET} html libcef_dll_wrapper)
+
+if(OS_MAC)
+	target_link_libraries(${TARGET} html libcef_dll_wrapper ${CEF_STANDARD_LIBS})
+else()
+	target_link_libraries(${TARGET} html libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS})
+endif()
+
+if(OS_WINDOWS AND USE_SANDBOX)
+	ADD_LOGICAL_TARGET("cef_sandbox_lib" "${CEF_SANDBOX_LIB_DEBUG}" "${CEF_SANDBOX_LIB_RELEASE}")
+	target_link_libraries(${TARGET} cef_sandbox_lib ${CEF_SANDBOX_STANDARD_LIBS})
+endif()
+
+set_target_properties(${TARGET} PROPERTIES PREFIX "")
+if(OS_LINUX)
+	set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME "html_chromium_client")
+endif()
+
+if(OS_WINDOWS)
+	if(CMAKE_SIZEOF_VOID_P MATCHES 8)
+		install(TARGETS ${TARGET} DESTINATION "${INSTALL_OUT_DIR}/GarrysMod/bin/win64")
+	else()
+		install(TARGETS ${TARGET} DESTINATION "${INSTALL_OUT_DIR}/GarrysMod/bin")
+	endif()
+elseif(OS_LINUX)
+	install(TARGETS ${TARGET} DESTINATION "${INSTALL_OUT_DIR}/GarrysMod/bin/${CEF_PLATFORM}")
+elseif(OS_MAC)
+	install(TARGETS ${TARGET} DESTINATION "${INSTALL_OUT_DIR}/GarrysMod_Signed.app/Contents/MacOS")
+endif()
+
+# Always generate debug symbols
+if(OS_LINUX OR OS_MAC)
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g")
+elseif(OS_WINDOWS)
+	target_link_options(${TARGET} PUBLIC /DEBUG)
+endif()

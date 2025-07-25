@@ -1,4 +1,4 @@
-$Macro SRCDIR		"..\..\.."
+$Macro SRCDIR		"..\.."
 
 // GMOD: GO - We have to append the PLATSUBDIR manually here because EXEs are unique.
 $Include "$SRCDIR\vpc_scripts\platform_dirs.vpc"

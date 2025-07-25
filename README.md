@@ -18,45 +18,63 @@ This is not the only version that could be supported, but it's the version that'
 ## Getting started
 ### Windows
 #### Requirements
-- Visual Studio 2019
-- CMake 3.15 or newer
+- Visual Studio 2022
+- CMake 3.19 or newer
 #### Generating Visual Studio Solution
 ##### x86
 ```bat
 mkdir build_x86
 cd build_x86
-cmake -G "Visual Studio 16 2019" -A Win32 ..
+cmake -G "Visual Studio 17 2022" -A Win32 ..
 ```
 #### x86-64
 ```bat
 mkdir build_x64
 cd build_x64
-cmake -G "Visual Studio 16 2019" -A x64 ..
+cmake -G "Visual Studio 17 2022" -A x64 ..
 ```
 
-After running either of these sets of commands, you can enter your created directory and open the `gmod-html.sln` solution in Visual Studio. Compiling the `INSTALL` project will place a complete build into `<your_build_dir>/bin` by default.
+After running either of these sets of commands, you can enter your created directory and open the `gmod-html.sln` solution in Visual Studio. Compiling the `INSTALL` project will place a complete build into the `dist/` folder by default.
+
+If you only have VS Build Tools, use this command in "Developer Command Prompt for VS 2022":
+```
+msbuild /p:Configuration=Release INSTALL.vcxproj
+```
 
 ### Linux
 #### Requirements
-- A version of GCC/G++ or Clang/Clang++ with C++11 support
-- CMake 2.8.7 or newer
+- A version of GCC/G++ or Clang/Clang++ with C++17 support
+- CMake 3.19 or newer
 
 #### Compiling
 ```sh
 mkdir build
 cd build
-cmake -G "Unix Makefiles" ..
+cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Release ..
 make && make install
 ```
 
-This will place a complete build into `build/bin` by default.
+This will place a complete build into the `dist` folder by default.
 
 ### macOS
-Todo
+#### Requirements
+- Ninja
+- CMake 3.19 or newer
+
+#### Compiling
+```sh
+mkdir build
+cd build
+cmake -G Ninja -D CMAKE_BUILD_TYPE=Release ..
+ninja && ninja install
+```
+
+##### Apple Silicon
+```sh
+cmake -G Ninja -D CMAKE_BUILD_TYPE=Release -D CMAKE_APPLE_SILICON_PROCESSOR=x86_64 ..
+```
+
+This will place a complete build into the `dist` folder by default.
 
 ## TODO
-- Improve the CMake files. We don't use them for GMod builds so they're a bit wonky.
-- Get the example_host into workable condition. It's disabled at the moment
-- Cleanup. Everything is quite messy.
-- macOS. These builds require quite a few unique things so they're not handled by the CMake scripts at all at the moment. It's still technically possible to get the builds working, though.
 - Dynamic loading of the HTML implementation. Atm we just use dylib() or LoadLibrary() in each host which is kind of lame. It'd be nice to simplify it.
