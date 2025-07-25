@@ -2,16 +2,18 @@
 This is pretty much just an abstraction layer around The Chromium Embedded Framework (https://bitbucket.org/chromiumembedded/cef)
 
 ## Chromium Embedded Framework Binary Distribution
-To work with this project you will need a build of the Chromium Embedded Framework. You can download the builds used by Garry's Mod here if you don't want to compile your own:
+To work with this project you will need a build of the Chromium Embedded Framework. You can download prebuilt versions of CEF from Spotify's Automated Builder if you don't want to compile your own:
 
-| Platform | URL |
-| -------- | --- |
-| Windows x86 | https://files.facepunch.com/willox/7bb55f57-7c70-4140-83d7-2d61d8b57816/cef_binary_80.0.4%2Bg74f7b0c%2Bchromium-80.0.3987.122_windows32.tar.bz2 |
-| Windows x64 | https://files.facepunch.com/willox/14ceed65-8809-4fba-97a7-2d524b6d45ec/cef_binary_80.0.4%2Bg74f7b0c%2Bchromium-80.0.3987.122_windows64.tar.bz2 |
-| Linux x64 | https://files.facepunch.com/willox/dfd5d7fe-2184-40a9-90b0-49f9eef9a9b5/cef_binary_80.0.4%2Bg74f7b0c%2Bchromium-80.0.3987.122_linux64.tar.bz2 |
-| macOS x64 | https://files.facepunch.com/willox/17e19274-4112-4734-ac20-22cd8644bcb4/cef_binary_80.0.4%2Bg74f7b0c%2Bchromium-80.0.3987.122_macosx64.tar.bz2 |
+https://cef-builds.spotifycdn.com/index.html
 
-These belong in the `./thirdparty/cef3/` directory (after extraction.) The paths are currently hardcoded into the root `CMakelists.txt` file.
+Everything you need is in the **Standard Distribution**. If you need to debug the CEF part, grab the Symbols too. The extracted binary folder belongs in the `./thirdparty/cef3/` directory. The paths are currently hardcoded into the root `CMakelists.txt` file.
+
+## Currently supported CEF version
+The current version of CEF that's supported by this library is:
+
+- **86.0.24+g85e79d4+chromium-86.0.4240.198**
+
+This is not the only version that could be supported, but it's the version that's currently configured and tested to work.
 
 ## Getting started
 ### Windows
