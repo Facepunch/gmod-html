@@ -133,5 +133,7 @@ endif()
 if(OS_LINUX OR OS_MAC)
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g")
 elseif(OS_WINDOWS)
-	target_link_options(${TARGET} PUBLIC /DEBUG)
+	target_link_options(${TARGET}
+		PUBLIC /DEBUG
+		PUBLIC /STACK:0x180000) # 1.5MiB stack reserve on Windows (matches facepunch's exes, fixes crashes on 32-bit)
 endif()

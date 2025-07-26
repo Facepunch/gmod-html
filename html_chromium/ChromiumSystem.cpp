@@ -11,6 +11,7 @@
 #ifdef OSX
 #include "include/wrapper/cef_library_loader.h"
 #endif
+#include "include/cef_version.h"
 #include "cef_end.h"
 
 #include <time.h>
@@ -104,9 +105,11 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	settings.no_sandbox = false;
 #endif
 	settings.command_line_args_disabled = true;
-	settings.log_severity = LOGSEVERITY_VERBOSE;
+	settings.log_severity = LOGSEVERITY_DEFAULT;
 
 #ifdef _WIN32
+	std::string platform = "Windows NT";
+
 	// Chromium will be sad if we don't resolve any NTFS junctions for it
 	// Is this really the only way Windows will let me do that?
 	auto hFile = CreateFileA( strBaseDir.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL );
@@ -158,15 +161,15 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 		chromiumDir = targetPath.string();
 	}
 
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Windows NT; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36 GMod/13" );
-
 	// GMOD: GO - We use the same resources with 32-bit and 64-bit builds, so always use the 32-bit bin path for them
+	// TODO(winter): Disabled since they don't work in CEF 131+ (for now)
+	// https://github.com/chromiumembedded/cef/issues/3749
 	//CefString( &settings.resources_dir_path ).FromString( chromiumDir );
 	//CefString( &settings.locales_dir_path ).FromString( chromiumDir + "/locales" );
 
 	settings.multi_threaded_message_loop = true;
 #elif LINUX
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Linux; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36 GMod/13" );
+	std::string platform = "Linux";
 
 #if defined(__x86_64__) || defined(_WIN64)
 	CefString( &settings.browser_subprocess_path ).FromString( strBaseDir + "/bin/linux64/chromium_process" );
@@ -175,15 +178,20 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 #endif
 
 	// GMOD: GO - We use the same resources with 32-bit and 64-bit builds, so always use the 32-bit bin path for them
-	CefString( &settings.resources_dir_path ).FromString( strBaseDir + "/bin/linux32/chromium" );
-	CefString( &settings.locales_dir_path ).FromString( strBaseDir + "/bin/linux32/chromium/locales" );
+	// TODO(winter): Disabled since they don't work in CEF 131+ (for now)
+	// https://github.com/chromiumembedded/cef/issues/3749
+	//CefString( &settings.resources_dir_path ).FromString( strBaseDir + "/bin/linux32/chromium" );
+	//CefString( &settings.locales_dir_path ).FromString( strBaseDir + "/bin/linux32/chromium/locales" );
 
 	settings.multi_threaded_message_loop = true;
 #elif OSX
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Macintosh; Intel Mac OS X; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36 GMod/13" );
+	std::string platform = "Macintosh; Intel Mac OS X";
 #else
 #error
 #endif
+
+	std::string chrome_version = std::to_string(CHROME_VERSION_MAJOR) + ".0.0.0";
+	CefString(&settings.user_agent).FromString("Mozilla/5.0 (" + platform + "; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" + chrome_version + " Safari/537.36 GMod/13");
 
 	CefString( &settings.log_file ).FromString( strBaseDir + "/chromium.log" );
 
@@ -269,8 +277,6 @@ IHtmlClient* ChromiumSystem::CreateClient( IHtmlClientListener* listener )
 	browserSettings.windowless_frame_rate = 60;
 	browserSettings.javascript_access_clipboard = STATE_DISABLED;
 	browserSettings.javascript_close_windows = STATE_DISABLED;
-	browserSettings.universal_access_from_file_urls = STATE_DISABLED;
-	browserSettings.file_access_from_file_urls = STATE_DISABLED;
 	browserSettings.webgl = STATE_DISABLED;
 
 	CefRefPtr<ChromiumBrowser> cefClient( new ChromiumBrowser );

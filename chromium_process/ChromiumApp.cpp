@@ -106,9 +106,10 @@ static bool CefValueToV8Value( CefRefPtr<CefV8Value>& outValue, const CefRefPtr<
 		case VTYPE_LIST:
 		{
 			auto inList = inValue->GetList();
-			outValue = CefV8Value::CreateArray( inList->GetSize() );
+			int size = static_cast<int>( inList->GetSize() );
+			outValue = CefV8Value::CreateArray( size );
 
-			for ( size_t i = 0; i < inList->GetSize(); i++ )
+			for ( int i = 0; i < size; i++ )
 			{
 				CefRefPtr<CefV8Value> entry;
 
@@ -440,12 +441,12 @@ void ChromiumApp::RegisterFunction( CefRefPtr<CefBrowser> browser, CefRefPtr<Cef
 
     // Register this function in any frames that already exist
     {
-        std::vector<int64> frames;
+        std::vector<CefString> frames;
         browser->GetFrameIdentifiers( frames );
 
         for ( auto frameId : frames )
         {
-            RegisterFunctionInFrame( browser->GetFrame( frameId ), objName, funcName );
+            RegisterFunctionInFrame( browser->GetFrameByIdentifier( frameId ), objName, funcName );
         }
     }
 

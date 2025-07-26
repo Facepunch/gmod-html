@@ -34,7 +34,7 @@ public:
 	// CefResourceHandler interface
 	//
 	bool ProcessRequest( CefRefPtr<CefRequest> request, CefRefPtr<CefCallback> callback ) override;
-	void GetResponseHeaders( CefRefPtr<CefResponse> response, cef_int64& responseLength, CefString& redirectUrl ) override;
+	void GetResponseHeaders( CefRefPtr<CefResponse> response, int64_t& responseLength, CefString& redirectUrl ) override;
 	bool ReadResponse( void* data_out, int bytes_to_read, int& bytes_read, CefRefPtr<CefCallback> callback ) override;
 	void Cancel() override;
 

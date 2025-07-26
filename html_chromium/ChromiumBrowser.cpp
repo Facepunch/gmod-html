@@ -271,7 +271,7 @@ void ChromiumBrowser::SetSize( int wide, int tall )
 
 void ChromiumBrowser::SetFocused( bool hasFocus )
 {
-	m_BrowserHost->SendFocusEvent( hasFocus );
+	m_BrowserHost->SetFocus( hasFocus );
 }
 
 void ChromiumBrowser::SendKeyEvent( IHtmlClient::KeyEvent keyEvent )
@@ -283,8 +283,8 @@ void ChromiumBrowser::SendKeyEvent( IHtmlClient::KeyEvent keyEvent )
 	{
 		case IHtmlClient::KeyEvent::Type::KeyChar:
 			chromiumKeyEvent.type = KEYEVENT_CHAR;
-			chromiumKeyEvent.character = static_cast<char16>( keyEvent.key_char );
-			chromiumKeyEvent.unmodified_character = static_cast<char16>( keyEvent.key_char );
+			chromiumKeyEvent.character = static_cast<char16_t>( keyEvent.key_char );
+			chromiumKeyEvent.unmodified_character = static_cast<char16_t>( keyEvent.key_char );
 #ifdef OSX
 			chromiumKeyEvent.windows_key_code = 0;
 #else
@@ -479,6 +479,7 @@ void ChromiumBrowser::OnBeforeClose( CefRefPtr<CefBrowser> browser )
 
 bool ChromiumBrowser::OnBeforePopup( CefRefPtr<CefBrowser>,
 	CefRefPtr<CefFrame> frame,
+	int,
 	const CefString& targetUrl,
 	const CefString&,
 	CefLifeSpanHandler::WindowOpenDisposition targetDisposition,
@@ -496,7 +497,7 @@ bool ChromiumBrowser::OnBeforePopup( CefRefPtr<CefBrowser>,
 	msg.type = MessageQueue::Type::OnCreateChildView;
 	msg.string1 = sourceUrl.ToString();
 	msg.string2 = targetUrl.ToString();
-	msg.integer = static_cast<int>( targetDisposition == WOD_NEW_POPUP );
+	msg.integer = static_cast<int>( targetDisposition == CEF_WOD_NEW_POPUP );
 	QueueMessage( std::move( msg ) );
 
 	// Don't create the popup
@@ -573,11 +574,7 @@ void ChromiumBrowser::OnTitleChange( CefRefPtr<CefBrowser>, const CefString& tit
 	QueueMessage( std::move( msg ) );
 }
 
-//
-// CefRenderHandler interface
-//
-void ChromiumBrowser::OnCursorChange( CefRefPtr<CefBrowser>, CefCursorHandle, CefRenderHandler::CursorType chromeCursor, const CefCursorInfo& )
-{
+bool ChromiumBrowser::OnCursorChange( CefRefPtr<CefBrowser> browser, CefCursorHandle, cef_cursor_type_t chromeCursor, const CefCursorInfo& ){
 	using GModCursorType = IHtmlClientListener::CursorType;
 	GModCursorType gmodCursor;
 
@@ -652,9 +649,14 @@ void ChromiumBrowser::OnCursorChange( CefRefPtr<CefBrowser>, CefCursorHandle, Ce
 	msg.type = MessageQueue::Type::OnCursorChange;
 	msg.integer = static_cast<int>( gmodCursor );
 	QueueMessage( std::move( msg ) );
+
+	return false;
 }
 
 
+//
+// CefRenderHandler interface
+//
 void ChromiumBrowser::GetViewRect( CefRefPtr<CefBrowser>, CefRect& rect )
 {
 	rect.x = 0;
@@ -741,7 +743,7 @@ bool ChromiumBrowser::OnOpenURLFromTab( CefRefPtr<CefBrowser>,
 	bool user_gesture )
 {
 	// Does similar things like OnBeforePopup, for example middle mouse clicks
-	if ( targetDisposition == WOD_NEW_POPUP || targetDisposition == WOD_NEW_FOREGROUND_TAB || targetDisposition == WOD_NEW_BACKGROUND_TAB )
+	if ( targetDisposition == CEF_WOD_NEW_POPUP || targetDisposition == CEF_WOD_NEW_FOREGROUND_TAB || targetDisposition == CEF_WOD_NEW_BACKGROUND_TAB )
 	{
 		CefString sourceUrl = frame->GetURL();
 
@@ -749,7 +751,7 @@ bool ChromiumBrowser::OnOpenURLFromTab( CefRefPtr<CefBrowser>,
 		msg.type = MessageQueue::Type::OnCreateChildView;
 		msg.string1 = sourceUrl.ToString();
 		msg.string2 = targetUrl.ToString();
-		msg.integer = static_cast<int>( targetDisposition == WOD_NEW_POPUP );
+		msg.integer = static_cast<int>( targetDisposition == CEF_WOD_NEW_POPUP );
 		QueueMessage( std::move( msg ) );
 
 		// Don't create the popup
@@ -814,7 +816,7 @@ bool ChromiumBrowser::OnBeforeBrowse( CefRefPtr<CefBrowser>,
 ChromiumBrowser::ReturnValue ChromiumBrowser::OnBeforeResourceLoad( CefRefPtr<CefBrowser>,
 	CefRefPtr<CefFrame>,
 	CefRefPtr<CefRequest> request,
-	CefRefPtr<CefRequestCallback> )
+	CefRefPtr<CefCallback> )
 {
 	CefURLParts urlParts;
 	if ( !CefParseURL( request->GetURL(), urlParts ) )
@@ -866,7 +868,8 @@ bool ChromiumBrowser::OnFileDialog( CefRefPtr<CefBrowser>,
 	const CefString&,
 	const CefString&,
 	const std::vector<CefString>&,
-	int,
+	const std::vector<CefString>&,
+	const std::vector<CefString>&,
 	CefRefPtr<CefFileDialogCallback> callback )
 {
 	callback->Cancel();
