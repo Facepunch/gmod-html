@@ -81,7 +81,6 @@ void ChromiumClient::Close()
 	CefPostTask( TID_UI, base::BindOnce( &ChromiumBrowser::Close, m_Browser ) );
 
 	g_ChromiumSystem.OnClientClose( this );
-	delete this;
 }
 
 void ChromiumClient::SetSize( int wide, int tall )

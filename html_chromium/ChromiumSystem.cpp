@@ -8,8 +8,8 @@
 #include "cef_start.h"
 #include "include/cef_app.h"
 #include "include/cef_origin_whitelist.h"
-#ifdef OSX
-#include "include/wrapper/cef_library_loader.h"
+#ifdef __APPLE__
+	#include "include/wrapper/cef_library_loader.h"
 #endif
 #include "include/cef_version.h"
 #include "cef_end.h"
@@ -36,16 +36,25 @@ public:
 		command_line->AppendSwitch( "enable-system-flash" );
 
 		// This can interfere with posix signals and break Breakpad
-#ifdef POSIX
+#ifdef __linux__
 		command_line->AppendSwitch( "disable-in-process-stack-traces" );
+
+		// Flatpak, AppImage, and Snap break sandboxing
+		// GMOD_CEF_NO_SANDBOX is for when we want to FORCE it off
+		// TODO(winter): It's not ideal to just outright turn off sandboxing...but Steam does it too, so
+		if ( getenv( "GMOD_CEF_NO_SANDBOX" ) || getenv( "container" ) || getenv( "APPIMAGE" ) || getenv( "SNAP" ) ) {
+			LOG(WARNING) << "Disabling Chromium sandbox...\n";
+			command_line->AppendSwitch("no-sandbox");
+		}
 #endif
 
-#ifdef OSX
+#ifdef __APPLE__
 		command_line->AppendSwitch( "use-mock-keychain" );
 #endif
 
 		// https://bitbucket.org/chromiumembedded/cef/issues/2400
-		command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents" );
+		// DXVAVideoDecoding must be disabled for Proton/Wine
+		command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents,DXVAVideoDecoding" );
 
 		// Auto-play media
 		command_line->AppendSwitchWithValue( "autoplay-policy", "no-user-gesture-required" );
@@ -70,12 +79,12 @@ private:
 typedef void* ( *CreateCefSandboxInfoFn )( );
 typedef void ( *DestroyCefSandboxInfoFn )( void* );
 
-// Needs cleaning up. There's too much Windows shit.
+// TODO: Needs cleaning up. There's too much Windows shit.
 bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResourceHandler )
 {
 	g_pHtmlResourceHandler = pResourceHandler;
 
-#ifdef OSX
+#ifdef __APPLE__
 	static CefScopedLibraryLoader library_loader;
 	if ( !library_loader.LoadInMain() )
 	{
@@ -83,7 +92,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	}
 #endif
 
-#ifdef POSIX
+#if defined( __linux__ ) || defined( __APPLE__ )
 	// GMOD: GO - Chromium will replace Breakpad's signal handlers if we don't do this early
 	int argc = 2;
 	char arg1[] = "binary";
@@ -99,11 +108,13 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	settings.remote_debugging_port = 0;
 	settings.windowless_rendering_enabled = true;
-#if defined( _WIN32 ) && !defined( NDEBUG )
-	settings.no_sandbox = true;
-#else
+
+#ifdef CEF_USE_SANDBOX
 	settings.no_sandbox = false;
+#else
+	settings.no_sandbox = true;
 #endif
+
 	settings.command_line_args_disabled = true;
 	settings.log_severity = LOGSEVERITY_DEFAULT;
 
@@ -168,10 +179,10 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	//CefString( &settings.locales_dir_path ).FromString( chromiumDir + "/locales" );
 
 	settings.multi_threaded_message_loop = true;
-#elif LINUX
+#elif __linux__
 	std::string platform = "Linux";
 
-#if defined(__x86_64__) || defined(_WIN64)
+#if defined( __x86_64__ ) || defined( _WIN64 )
 	CefString( &settings.browser_subprocess_path ).FromString( strBaseDir + "/bin/linux64/chromium_process" );
 #else
 	CefString( &settings.browser_subprocess_path ).FromString( strBaseDir + "/bin/linux32/chromium_process" );
@@ -184,19 +195,68 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	//CefString( &settings.locales_dir_path ).FromString( strBaseDir + "/bin/linux32/chromium/locales" );
 
 	settings.multi_threaded_message_loop = true;
-#elif OSX
+#elif __APPLE__
 	std::string platform = "Macintosh; Intel Mac OS X";
 #else
 #error
 #endif
 
-	std::string chrome_version = std::to_string(CHROME_VERSION_MAJOR) + ".0.0.0";
-	CefString(&settings.user_agent).FromString("Mozilla/5.0 (" + platform + "; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" + chrome_version + " Safari/537.36 GMod/13");
+	std::string chrome_version = std::to_string( CHROME_VERSION_MAJOR ) + ".0.0.0";
+	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (" + platform + "; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" + chrome_version + " Safari/537.36 GMod/13" );
 
-	CefString( &settings.log_file ).FromString( strBaseDir + "/chromium.log" );
+	// Rotate log file
+	// TODO(winter): This is probably not the best place to be doing this
+	std::error_code rotateError;
+	std::string curLogPath = strBaseDir + "/chromium.log";
+	std::string lastLogPath = strBaseDir + "/chromium.log.1";
 
-	// Grab our Sandbox info from the game exe
-#if defined( _WIN32 ) && defined( NDEBUG )
+	std::string cefCachePath = strBaseDir + "/ChromiumCache";
+	std::string cefLockFilePath = cefCachePath + "/lockfile";
+
+	// Try to delete the lockfile. If we can't, it's still in use. Crashes could leave it behind
+	fs::remove( cefLockFilePath );
+
+	if ( fs::exists( cefLockFilePath ) ) {
+		pResourceHandler->Message( "Skipping Chromium log rotation (lockfile exists)...\n" );
+		
+		unsigned int multirunInstanceID = 0;
+		while ( fs::exists( cefCachePath ) && fs::exists( cefLockFilePath ) ) {
+			multirunInstanceID++;
+			cefCachePath = strBaseDir + "/ChromiumCacheMultirun/" + std::to_string( multirunInstanceID );
+			cefLockFilePath = cefCachePath + "/lockfile";
+		}
+
+		//m_MultirunCacheDir = cefCachePath;
+		std::string m_MultirunCacheDir = cefCachePath;
+
+		std::string tmpCacheMsg = "Using temporary Chromium cache to support multirun: " + m_MultirunCacheDir + "\n";
+		pResourceHandler->Message( tmpCacheMsg.c_str() );
+	} else {
+		fs::copy_file( curLogPath, lastLogPath, fs::copy_options::overwrite_existing, rotateError );
+
+		if ( rotateError ) {
+			const std::string rotateErrorMsg = "Couldn't rotate chromium.log (copy): " + rotateError.message() + "\n";
+			pResourceHandler->Message( rotateErrorMsg.c_str() );
+			rotateError.clear();
+		}
+
+		fs::remove( curLogPath, rotateError );
+
+		if ( rotateError ) {
+			const std::string rotateErrorMsg = "Couldn't rotate chromium.log (remove): " + rotateError.message() + "\n";
+			pResourceHandler->Message( rotateErrorMsg.c_str() );
+			rotateError.clear();
+		}
+	}
+
+	CefString( &settings.log_file ).FromString( curLogPath );
+
+	// CEF 120+ requires this otherwise CEF applications will trample each other
+	CefString( &settings.root_cache_path ).FromString( cefCachePath );
+	CefString( &settings.cache_path ).FromString( cefCachePath );
+
+	// Grab our Sandbox info from the "game" exe
+#if defined( _WIN32 ) && defined( CEF_USE_SANDBOX )
 	HMODULE pModule;
 
 	if ( !GetModuleHandleEx( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &pModule ) )
@@ -224,10 +284,11 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	if ( !CefInitialize( main_args, settings, new ChromiumApp, sandbox_info ) )
 	{
+		pResourceHandler->Message( "CefInitialize failed!\n" );
 		return false;
 	}
 
-#if defined( _WIN32 ) && defined( NDEBUG )
+#if defined( _WIN32 ) && defined( CEF_USE_SANDBOX )
 	DestroyCefSandboxInfo( sandbox_info );
 #endif
 
@@ -255,7 +316,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 		CefAddCrossOriginWhitelistEntry( "asset://html", "asset", "", true );
 	}
 
-#ifdef OSX
+#ifdef __APPLE__
 	CefDoMessageLoopWork();
 #endif
 
@@ -279,7 +340,7 @@ IHtmlClient* ChromiumSystem::CreateClient( IHtmlClientListener* listener )
 	browserSettings.javascript_close_windows = STATE_DISABLED;
 	browserSettings.webgl = STATE_DISABLED;
 
-	CefRefPtr<ChromiumBrowser> cefClient( new ChromiumBrowser );
+	CefRefPtr<ChromiumBrowser> cefClient( new ChromiumBrowser() );
 
 	// Queue the browser creation. It's async, but ChromiumBrowser will handle it all.
 	CefBrowserHost::CreateBrowser( windowInfo, cefClient, "", browserSettings, nullptr, nullptr );
@@ -302,7 +363,7 @@ void ChromiumSystem::Update()
 	m_RequestsLock.Release();
 
 	// macOS will want me
-#ifdef OSX
+#ifdef __APPLE__
 	CefDoMessageLoopWork();
 #endif
 

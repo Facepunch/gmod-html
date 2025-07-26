@@ -10,6 +10,14 @@
 #ifdef _WIN32
 	#include <shellapi.h>
 #endif
+#ifdef __linux__
+	#include <unistd.h>
+	#include <sys/wait.h>
+#endif
+#ifdef __APPLE__
+	#include <CoreFoundation/CFBundle.h>
+	#include <ApplicationServices/ApplicationServices.h>
+#endif
 
 static bool CefValueToJSValue( JSValue& outValue, CefRefPtr<CefValue> inValue, int depth = 0 )
 {
@@ -230,7 +238,11 @@ ChromiumBrowser::ChromiumBrowser()
 	, m_PopupTall( 0 )
 	, m_PopupData( nullptr )
 	, m_OpenLinksExternally( false )
-{}
+{
+	RunOrDeferForInit([ this ] {
+		m_BrowserHost->WasResized();
+	});
+}
 
 ChromiumBrowser::~ChromiumBrowser()
 {
@@ -259,21 +271,28 @@ void ChromiumBrowser::QueueMessage( MessageQueue::Message&& message )
 //
 void ChromiumBrowser::Close()
 {
-	m_BrowserHost->CloseBrowser( true );
+	RunOrDeferForInit([ this ] {
+		m_BrowserHost->CloseBrowser( true );
+	});
 }
 
 void ChromiumBrowser::SetSize( int wide, int tall )
 {
-	m_Wide = wide;
-	m_Tall = tall;
-	m_BrowserHost->WasResized();
+	RunOrDeferForInit([ this, wide, tall ] {
+		m_Wide = wide;
+		m_Tall = tall;
+		m_BrowserHost->WasResized();
+	});
 }
 
 void ChromiumBrowser::SetFocused( bool hasFocus )
 {
-	m_BrowserHost->SetFocus( hasFocus );
+	RunOrDeferForInit([ this, hasFocus ] {
+		m_BrowserHost->SetFocus( hasFocus );
+	});
 }
 
+// Validate against https://dvcs.w3.org/hg/d4e/raw-file/tip/key-event-test.html
 void ChromiumBrowser::SendKeyEvent( IHtmlClient::KeyEvent keyEvent )
 {
 	CefKeyEvent chromiumKeyEvent;
@@ -309,6 +328,10 @@ void ChromiumBrowser::SendKeyEvent( IHtmlClient::KeyEvent keyEvent )
 
 void ChromiumBrowser::SendMouseMoveEvent( IHtmlClient::MouseEvent gmodMouseEvent, bool mouseLeave )
 {
+	if ( m_BrowserHost == nullptr ) {
+		return;
+	}
+
 	CefMouseEvent mouseEvent;
 	mouseEvent.x = gmodMouseEvent.x;
 	mouseEvent.y = gmodMouseEvent.y;
@@ -319,7 +342,11 @@ void ChromiumBrowser::SendMouseMoveEvent( IHtmlClient::MouseEvent gmodMouseEvent
 
 void ChromiumBrowser::SendMouseWheelEvent( IHtmlClient::MouseEvent gmodMouseEvent, int deltaX, int deltaY )
 {
-	// Some CEF bug is fucking this up. I don't care much for worrying about it yet
+	if ( m_BrowserHost == nullptr ) {
+		return;
+	}
+
+	// TODO(sophie): Some CEF bug is fucking this up. I don't care much for worrying about it yet
 	CefMouseEvent mouseEvent;
 	mouseEvent.x = gmodMouseEvent.x;
 	mouseEvent.y = gmodMouseEvent.y;
@@ -330,6 +357,10 @@ void ChromiumBrowser::SendMouseWheelEvent( IHtmlClient::MouseEvent gmodMouseEven
 
 void ChromiumBrowser::SendMouseClickEvent( IHtmlClient::MouseEvent gmodMouseEvent, IHtmlClient::MouseButton gmodButtonType, bool mouseUp, int clickCount )
 {
+	if ( m_BrowserHost == nullptr ) {
+		return;
+	}
+
 	CefMouseEvent mouseEvent;
 	mouseEvent.x = gmodMouseEvent.x;
 	mouseEvent.y = gmodMouseEvent.y;
@@ -355,63 +386,79 @@ void ChromiumBrowser::SendMouseClickEvent( IHtmlClient::MouseEvent gmodMouseEven
 
 void ChromiumBrowser::LoadUrl( const std::string& url )
 {
-	m_Browser->GetMainFrame()->LoadURL( CefString( url ) );
+	RunOrDeferForInit([ this, url ] {
+		m_Browser->GetMainFrame()->LoadURL( CefString( url ) );
+	});
 }
 
 void ChromiumBrowser::SetHtml( const std::string& html )
 {
 	// asset://html/?{myhtml}
-	CefURLParts urlParts;
-	CefString( &urlParts.scheme ).FromString( "asset" );
-	CefString( &urlParts.host ).FromString( "html" );
-	CefString( &urlParts.path ).FromString( "/" );
-	CefString( &urlParts.query ).FromString( CefBase64Encode( html.c_str(), html.size() ) );
+	RunOrDeferForInit([ this, html ] {
+		CefURLParts urlParts;
+		CefString( &urlParts.scheme ).FromString( "asset" );
+		CefString( &urlParts.host ).FromString( "html" );
+		CefString( &urlParts.path ).FromString( "/" );
+		CefString( &urlParts.query ).FromString( CefBase64Encode( html.c_str(), html.size() ) );
 
-	CefString url;
-	if ( !CefCreateURL( urlParts, url ) )
-		return;
+		CefString url;
+		if ( !CefCreateURL( urlParts, url ) )
+			return;
 
-	m_Browser->GetMainFrame()->LoadURL( url );
+		m_Browser->GetMainFrame()->LoadURL( url );
+	});
 }
 
 void ChromiumBrowser::Refresh()
 {
-	m_Browser->Reload();
+	RunOrDeferForInit([ this ] {
+		m_Browser->Reload();
+	});
 }
 
 void ChromiumBrowser::Stop()
 {
-	m_Browser->StopLoad();
+	RunOrDeferForInit([ this ] {
+		m_Browser->StopLoad();
+	});
 }
 
 void ChromiumBrowser::GoBack()
 {
-	m_Browser->GoBack();
+	RunOrDeferForInit([ this ] {
+		m_Browser->GoBack();
+	});
 }
 
 void ChromiumBrowser::GoForward()
 {
-	m_Browser->GoForward();
+	RunOrDeferForInit([ this ] {
+		m_Browser->GoForward();
+	});
 }
 
 void ChromiumBrowser::RunJavaScript( const std::string& code )
 {
-	auto message = CefProcessMessage::Create( "ExecuteJavaScript" );
-	auto args = message->GetArgumentList();
+	RunOrDeferForInit([ this, code ] {
+		auto message = CefProcessMessage::Create( "ExecuteJavaScript" );
+		auto args = message->GetArgumentList();
 
-	args->SetString( 0, "Lua File" );
-	args->SetString( 1, code );
-	m_Browser->GetMainFrame()->SendProcessMessage( PID_RENDERER, message );
+		args->SetString( 0, "Lua File" );
+		args->SetString( 1, code );
+		m_Browser->GetMainFrame()->SendProcessMessage( PID_RENDERER, message );
+	});
 }
 
 void ChromiumBrowser::RegisterJavaScriptFunction( const std::string& objName, const std::string& funcName )
 {
-	auto message = CefProcessMessage::Create( "RegisterFunction" );
-	auto args = message->GetArgumentList();
+	RunOrDeferForInit([ this, objName, funcName ] {
+		auto message = CefProcessMessage::Create( "RegisterFunction" );
+		auto args = message->GetArgumentList();
 
-	args->SetString( 0, objName );
-	args->SetString( 1, funcName );
-	m_Browser->GetMainFrame()->SendProcessMessage( PID_RENDERER, message );
+		args->SetString( 0, objName );
+		args->SetString( 1, funcName );
+		m_Browser->GetMainFrame()->SendProcessMessage( PID_RENDERER, message );
+	});
 }
 
 void ChromiumBrowser::SetOpenLinksExternally( bool openLinksExternally )
@@ -421,18 +468,20 @@ void ChromiumBrowser::SetOpenLinksExternally( bool openLinksExternally )
 
 void ChromiumBrowser::ExecuteCallback( int callbackId, const JSValue& paramsArray )
 {
-	const auto& paramsVector = ( static_cast<const JSArray*>( paramsArray.GetInternalArray() ) )->GetInternalData(); // spaghetti
-	auto message = CefProcessMessage::Create( "ExecuteCallback" );
-	auto outArgs = message->GetArgumentList();
+	RunOrDeferForInit([ this, callbackId, paramsArray ] {
+		const auto& paramsVector = ( static_cast<const JSArray*>( paramsArray.GetInternalArray() ) )->GetInternalData(); // spaghetti
+		auto message = CefProcessMessage::Create( "ExecuteCallback" );
+		auto outArgs = message->GetArgumentList();
 
-	auto cefArgs = CefListValue::Create();
-	if ( !JSValuesToCefList( cefArgs, paramsVector ) )
-		return;
+		auto cefArgs = CefListValue::Create();
+		if ( !JSValuesToCefList( cefArgs, paramsVector ) )
+			return;
 
-	outArgs->SetInt( 0, callbackId );
-	outArgs->SetList( 1, cefArgs );
+		outArgs->SetInt( 0, callbackId );
+		outArgs->SetList( 1, cefArgs );
 
-	m_Browser->GetMainFrame()->SendProcessMessage( PID_RENDERER, message );
+		m_Browser->GetMainFrame()->SendProcessMessage( PID_RENDERER, message );
+	});
 }
 
 //
@@ -469,6 +518,12 @@ void ChromiumBrowser::OnAfterCreated( CefRefPtr<CefBrowser> browser )
 {
 	m_Browser = browser;
 	m_BrowserHost = browser->GetHost();
+
+	for (auto& func : m_Deferred) {
+		func();
+	}
+
+	m_Deferred = {};
 }
 
 void ChromiumBrowser::OnBeforeClose( CefRefPtr<CefBrowser> browser )
@@ -788,23 +843,29 @@ bool ChromiumBrowser::OnBeforeBrowse( CefRefPtr<CefBrowser>,
 #ifndef __APPLE__
 	if ( m_OpenLinksExternally )
 	{
-#if defined( _WIN32 )
-		ShellExecuteA( NULL, "open", request->GetURL().ToString().c_str(), NULL, NULL, SW_SHOWNORMAL );
-#elif defined( __linux__ )
-		std::string strUrl = request->GetURL().ToString();
-		pid_t pid;
-		const char* args[3];
-		args[0] = "/usr/bin/xdg-open";
-		args[1] = strUrl.c_str();
-		args[2] = NULL;
-		pid = fork();
+		std::string url = request->GetURL().ToString();
 
-		if ( pid == 0 )
-		{
-			execvp( args[0], (char* const*) args );
+#if defined( _WIN32 )
+		ShellExecuteA( NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL );
+#elif defined( __linux__ )
+		pid_t pid = fork();
+		if ( pid == 0 ) {
+			execlp( "xdg-open", "xdg-open", url.c_str(), NULL );
+			exit( 0 );
+		} else if ( pid < 0 ) {
+			LOG( ERROR ) << "Failed to open URL in external browser: " << url;
+		} else {
+			// TODO: Should we wait for the child process to finish?
+			waitpid( pid, NULL, 0 );
+		}
+#elif defined( __APPLE__ )
+		CFURLRef urlRef = CFURLCreateWithBytes( NULL, (const UInt8 *)url.c_str(), url.length(), kCFStringEncodingUTF8, NULL );
+		if ( urlRef ) {
+			LSOpenCFURLRef( urlRef, NULL );
+			CFRelease( urlRef );
 		}
 #else
-#error
+#error Unsupported platform
 #endif
 		return true;
 	}

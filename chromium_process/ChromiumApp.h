@@ -5,6 +5,7 @@
 
 class ChromiumApp
     : public CefApp
+	, public CefBrowserProcessHandler
     , public CefRenderProcessHandler
     , public CefV8Handler
 {
@@ -15,7 +16,12 @@ public:
     void OnBeforeCommandLineProcessing( const CefString& process_type, CefRefPtr<CefCommandLine> command_line ) override;
     void OnRegisterCustomSchemes( CefRawPtr<CefSchemeRegistrar> registrar ) override;
     CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() override;
-    
+
+	//
+	// CefBrowserProcessHandler interface
+	//
+	bool OnAlreadyRunningAppRelaunch( CefRefPtr<CefCommandLine> command_line, const CefString &current_directory ) override;
+
     //
     // CefRenderProcessHandler interface
     //

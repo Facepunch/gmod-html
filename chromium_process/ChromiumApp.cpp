@@ -178,16 +178,25 @@ void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, 
     command_line->AppendSwitch( "enable-system-flash" );
 
     // This can interfere with posix signals and break Breakpad
-#ifdef POSIX
+#if defined( __linux__ ) || defined( __APPLE__ )
     command_line->AppendSwitch( "disable-in-process-stack-traces" );
+
+	// Flatpak, AppImage, and Snap break sandboxing
+	// GMOD_CEF_NO_SANDBOX is for when we want to FORCE it off
+	// TODO(winter): It's not ideal to just outright turn off sandboxing...but Steam does it too, so
+	if ( getenv( "GMOD_CEF_NO_SANDBOX" ) || getenv( "container" ) || getenv( "APPIMAGE" ) || getenv( "SNAP" )) {
+		LOG(WARNING) << "Disabling Chromium sandbox...\n";
+		command_line->AppendSwitch( "no-sandbox" );
+	}
 #endif
 
-#ifdef OSX
+#ifdef __APPLE__
         command_line->AppendSwitch( "use-mock-keychain" );
 #endif
 
     // https://bitbucket.org/chromiumembedded/cef/issues/2400
-    command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents" );
+	// DXVAVideoDecoding must be disabled for Proton/Wine
+    command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents,DXVAVideoDecoding" );
 
     // Auto-play media
     command_line->AppendSwitchWithValue( "autoplay-policy", "no-user-gesture-required" );
@@ -211,20 +220,25 @@ CefRefPtr<CefRenderProcessHandler> ChromiumApp::GetRenderProcessHandler()
 }
 
 //
+// CefBrowserProcessHandler interface
+//
+bool ChromiumApp::OnAlreadyRunningAppRelaunch( CefRefPtr<CefCommandLine> command_line, const CefString &current_directory )
+{
+	// See ChromiumSystem::Init, we detect lockfile and handle things there
+	return true;
+}
+
+//
 // CefRenderProcessHandler interface
 //
 void ChromiumApp::OnContextCreated( CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context )
 {
     //
-    // CEF3 doesn't support implementing the print dialog, so we've gotta just remove window.print.
+    // CEF3 only supports implementing CefPrintHandler on Linux, so we've gotta just remove window.print.
     //
     context->Enter();
     {
         context->GetGlobal()->DeleteValue( "print" );
-
-        // Removing WebSQL for now - we can add it back after CEF3 has been updated
-        context->GetGlobal()->DeleteValue( "openDatabase" );
-
     }
     context->Exit();
 
@@ -240,7 +254,7 @@ void ChromiumApp::OnContextCreated( CefRefPtr<CefBrowser> browser, CefRefPtr<Cef
 
 void ChromiumApp::OnContextReleased( CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context )
 {
-
+	// Do nothing
 }
 
 bool ChromiumApp::OnProcessMessageReceived( CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefProcessId source_process, CefRefPtr<CefProcessMessage> message )
@@ -469,7 +483,7 @@ void ChromiumApp::ExecuteCallback( CefRefPtr<CefBrowser> browser, CefRefPtr<CefL
     if ( !context->IsValid() )
         return;
 
-	auto argList = args->GetList( 1 );
+    auto argList = args->GetList( 1 );
 
     context->Enter();
     {

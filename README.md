@@ -50,7 +50,7 @@ msbuild /p:Configuration=Release INSTALL.vcxproj
 ```sh
 mkdir build
 cd build
-cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Release ..
+cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Release -D CMAKE_POLICY_VERSION_MINIMUM=3.5 ..
 make && make install
 ```
 
@@ -65,13 +65,13 @@ This will place a complete build into the `dist` folder by default.
 ```sh
 mkdir build
 cd build
-cmake -G Ninja -D CMAKE_BUILD_TYPE=Release ..
+cmake -G Ninja -D CMAKE_BUILD_TYPE=Release -D CMAKE_POLICY_VERSION_MINIMUM=3.5 ..
 ninja && ninja install
 ```
 
 ##### Apple Silicon
 ```sh
-cmake -G Ninja -D CMAKE_BUILD_TYPE=Release -D CMAKE_APPLE_SILICON_PROCESSOR=x86_64 ..
+cmake -G Ninja -D CMAKE_BUILD_TYPE=Release -D CMAKE_APPLE_SILICON_PROCESSOR=x86_64 -D CMAKE_POLICY_VERSION_MINIMUM=3.5 ..
 ```
 
 This will place a complete build into the `dist` folder by default.

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 
 #include "cef_start.h"
 #include "include/cef_client.h"
@@ -26,6 +27,9 @@ class ChromiumBrowser
 public:
 	ChromiumBrowser();
 	~ChromiumBrowser();
+
+	ChromiumBrowser(const ChromiumBrowser&) = delete;
+	ChromiumBrowser& operator=(const ChromiumBrowser&) = delete;
 
 	ImageData& GetImageData();
 	MessageQueue& GetMessageQueue();
@@ -206,4 +210,20 @@ private:
 
 private:
 	IMPLEMENT_REFCOUNTING( ChromiumBrowser );
+
+private:
+	// Functions in this vector will be executed once our underlying CefBrowser is available
+	std::vector<std::function<void()>> m_Deferred;
+
+	template<typename T>
+	void RunOrDeferForInit( T func )
+	{
+		if ( m_Browser != nullptr && m_BrowserHost != nullptr )
+		{
+			func();
+			return;
+		}
+
+		m_Deferred.push_back( std::move( func ) );
+	}
 };
