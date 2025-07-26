@@ -169,13 +169,12 @@ static bool CefListToV8Values( CefV8ValueList& outList, const CefRefPtr<CefListV
 //
 void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, CefRefPtr<CefCommandLine> command_line )
 {
-    command_line->AppendSwitch( "disable-gpu" );
-    command_line->AppendSwitch( "disable-gpu-compositing" );
+    command_line->AppendSwitch( "enable-gpu" );
+    command_line->AppendSwitch( "disable-gpu-compositing" ); // NOTE: Enabling GPU Compositing will make OnAcceleratedPaint run instead of OnPaint (CEF must be patched or NOTHING will run!)
     command_line->AppendSwitch( "disable-smooth-scrolling" );
 #ifdef _WIN32
     command_line->AppendSwitch( "enable-begin-frame-scheduling" );
 #endif
-    command_line->AppendSwitch( "enable-system-flash" );
 
     // This can interfere with posix signals and break Breakpad
 #if defined( __linux__ ) || defined( __APPLE__ )
@@ -196,13 +195,11 @@ void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, 
 
     // https://bitbucket.org/chromiumembedded/cef/issues/2400
 	// DXVAVideoDecoding must be disabled for Proton/Wine
-    command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents,DXVAVideoDecoding" );
+	// Disable HardwareMediaKeyHandling to prevent external control of media
+    command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents,DXVAVideoDecoding,HardwareMediaKeyHandling" );
 
     // Auto-play media
     command_line->AppendSwitchWithValue( "autoplay-policy", "no-user-gesture-required" );
-
-    // Chromium 80 removed this but only sometimes.
-    command_line->AppendSwitchWithValue( "enable-blink-features", "HTMLImports" );
 
     // Disable site isolation until we implement passing registered Lua functions between processes
     command_line->AppendSwitch( "disable-site-isolation-trials" );
