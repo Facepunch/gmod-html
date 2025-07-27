@@ -50,6 +50,7 @@ public:
 
 	JSValue()
 		: _type( Type::Undefined )
+		, _bool( false )
 	{}
 
 	JSValue( bool value )
@@ -79,6 +80,7 @@ public:
 
 	JSValue( const JSValue& other )
 		: _type( other._type )
+		, _bool( false )
 	{
 		switch ( _type )
 		{
@@ -104,6 +106,7 @@ public:
 
 	JSValue( JSValue&& other ) noexcept
 		: _type( other._type )
+		, _bool(false)
 	{
 		switch ( _type )
 		{
@@ -237,17 +240,17 @@ public:
 
 	//
 
-	const bool HashMap_Begin( const char*& pKey, size_t& keySize, const JSValue*& pValue ) const
+	bool HashMap_Begin( const char*& pKey, size_t& keySize, const JSValue*& pValue ) const
 	{
 		return _pHashMap->Begin( pKey, keySize, pValue );
 	}
 
-	const bool HashMap_Next( const char*& pKey, size_t& keySize, const JSValue*& pValue ) const
+	bool HashMap_Next( const char*& pKey, size_t& keySize, const JSValue*& pValue ) const
 	{
 		return _pHashMap->Next( pKey, keySize, pValue );
 	}
 
-	const size_t HashMap_Size() const
+	size_t HashMap_Size() const
 	{
 		return _pHashMap->Size();
 	}
