@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 
 #include "cef_start.h"
 #include "include/cef_client.h"
@@ -26,6 +27,9 @@ class ChromiumBrowser
 public:
 	ChromiumBrowser();
 	~ChromiumBrowser();
+
+	ChromiumBrowser(const ChromiumBrowser&) = delete;
+	ChromiumBrowser& operator=(const ChromiumBrowser&) = delete;
 
 	ImageData& GetImageData();
 	MessageQueue& GetMessageQueue();
@@ -54,7 +58,7 @@ public:
 
 public:
 	//
-	// CefClient interface 
+	// CefClient interface
 	//
 	CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override { return this; }
 	CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
@@ -74,6 +78,7 @@ public:
 	void OnBeforeClose( CefRefPtr<CefBrowser> browser ) override;
 	bool OnBeforePopup( CefRefPtr<CefBrowser>,
 		CefRefPtr<CefFrame> frame,
+		int,
 		const CefString& targetUrl,
 		const CefString&,
 		CefLifeSpanHandler::WindowOpenDisposition targetDisposition,
@@ -98,15 +103,16 @@ public:
 	void OnAddressChange( CefRefPtr<CefBrowser>, CefRefPtr<CefFrame> frame, const CefString& url ) override;
 	bool OnConsoleMessage( CefRefPtr<CefBrowser>, cef_log_severity_t level, const CefString& message, const CefString& source, int line ) override;
 	void OnTitleChange( CefRefPtr<CefBrowser>, const CefString& title ) override;
+	bool OnCursorChange( CefRefPtr<CefBrowser> browser, CefCursorHandle, cef_cursor_type_t chromeCursor, const CefCursorInfo& ) override;
 
 	//
 	// CefRenderHandler interface
 	//
-	void OnCursorChange( CefRefPtr<CefBrowser>, CefCursorHandle, CefRenderHandler::CursorType chromeCursor, const CefCursorInfo& ) override;
 	void GetViewRect( CefRefPtr<CefBrowser>, CefRect& rect ) override;
 	void OnPopupShow( CefRefPtr<CefBrowser>, bool show ) override;
 	void OnPopupSize( CefRefPtr<CefBrowser>, const CefRect& rect ) override;
 	void OnPaint( CefRefPtr<CefBrowser>, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, const void* buffer, int width, int height ) override;
+	void OnAcceleratedPaint( CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, const CefAcceleratedPaintInfo& info ) override;
 
 	//
 	// CefRequestHandler interface
@@ -120,7 +126,7 @@ public:
 		bool& disable_default_handling ) override {
 		return this;
 	}
-	
+
 	bool OnOpenURLFromTab( CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame,
 		const CefString& target_url,
@@ -139,7 +145,7 @@ public:
 	ReturnValue OnBeforeResourceLoad( CefRefPtr<CefBrowser>,
 		CefRefPtr<CefFrame>,
 		CefRefPtr<CefRequest> request,
-		CefRefPtr<CefRequestCallback> ) override;
+		CefRefPtr<CefCallback> ) override;
 
 	void OnProtocolExecution( CefRefPtr<CefBrowser>,
 		CefRefPtr<CefFrame>,
@@ -162,7 +168,8 @@ public:
 		const CefString&,
 		const CefString&,
 		const std::vector<CefString>&,
-		int,
+		const std::vector<CefString>&,
+		const std::vector<CefString>&,
 		CefRefPtr<CefFileDialogCallback> callback ) override;
 
 //
@@ -204,4 +211,20 @@ private:
 
 private:
 	IMPLEMENT_REFCOUNTING( ChromiumBrowser );
+
+private:
+	// Functions in this vector will be executed once our underlying CefBrowser is available
+	std::vector<std::function<void()>> m_Deferred;
+
+	template<typename T>
+	void RunOrDeferForInit( T func )
+	{
+		if ( m_Browser != nullptr && m_BrowserHost != nullptr )
+		{
+			func();
+			return;
+		}
+
+		m_Deferred.push_back( std::move( func ) );
+	}
 };

@@ -43,6 +43,3 @@ public:
 #else
 	#error HTMLSYSTEM_EXPORT not defined for platform
 #endif
-
-
-// Aaaaaaaaaaa

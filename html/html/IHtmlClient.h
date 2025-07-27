@@ -87,7 +87,7 @@ public:
 	// Creates a JavaScript function at <objName>.<funcName>. Any calls to that function go to this page's JS call handler.
 	virtual void RegisterJavaScriptFunction( const char* objName, const char* funcName ) = 0;
 
-	// Opens clicekd links in the user's browser. This should only be set on clients that we trust.
+	// Opens clicked links in the user's browser. This should only be set on clients that we trust.
 	virtual void SetOpenLinksExternally( bool openLinksExternally ) = 0;
 
 	//

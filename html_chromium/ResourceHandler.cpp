@@ -73,7 +73,7 @@ static std::string GetFileExtension( std::string& path )
 	return path.substr( i + 1, path.length() );
 }
 
-void ResourceHandler::GetResponseHeaders( CefRefPtr<CefResponse> response, cef_int64& responseLength, CefString& redirectUrl )
+void ResourceHandler::GetResponseHeaders( CefRefPtr<CefResponse> response, int64_t& responseLength, CefString& redirectUrl )
 {
 	if ( m_Buffer == nullptr )
 	{
@@ -98,7 +98,7 @@ void ResourceHandler::GetResponseHeaders( CefRefPtr<CefResponse> response, cef_i
 
 bool ResourceHandler::ReadResponse( void* data_out, int bytes_to_read, int& bytes_read, CefRefPtr<CefCallback> callback )
 {
-	bytes_to_read = std::min<cef_uint64>( bytes_to_read, m_BufferLength - ( m_BufferPtr - m_Buffer ) );
+	bytes_to_read = std::min<uint64_t>( bytes_to_read, m_BufferLength - ( m_BufferPtr - m_Buffer ) );
 
 	memcpy( data_out, m_BufferPtr, bytes_to_read );
 	bytes_read = bytes_to_read;

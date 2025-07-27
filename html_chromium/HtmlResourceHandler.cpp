@@ -33,7 +33,7 @@ bool HtmlResourceHandler::ProcessRequest( CefRefPtr<CefRequest> request, CefRefP
 	return true;
 }
 
-void HtmlResourceHandler::GetResponseHeaders( CefRefPtr<CefResponse> response, cef_int64& responseLength, CefString& redirectUrl )
+void HtmlResourceHandler::GetResponseHeaders( CefRefPtr<CefResponse> response, int64_t& responseLength, CefString& redirectUrl )
 {
 	CefResponse::HeaderMap headerMap;
 	headerMap.emplace( "X-XSS-Protection", "0" );
@@ -49,7 +49,7 @@ bool HtmlResourceHandler::ReadResponse( void* data_out, int bytes_to_read, int& 
 	if ( m_Html.size() <= 0 )
 		return false;
 
-	bytes_to_read = std::min<cef_uint64>( bytes_to_read, m_Html.size() - m_Current );
+	bytes_to_read = std::min<uint64_t>( bytes_to_read, m_Html.size() - m_Current );
 
 	memcpy( data_out, m_Html.data() + m_Current, bytes_to_read );
 	bytes_read = bytes_to_read;
