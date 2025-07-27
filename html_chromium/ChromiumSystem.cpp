@@ -9,13 +9,11 @@
 #include "include/cef_app.h"
 #include "include/cef_origin_whitelist.h"
 #ifdef __APPLE__
-#include "include/wrapper/cef_library_loader.h"
+	#include "include/wrapper/cef_library_loader.h"
 #endif
 #include "include/cef_version.h"
 #include "cef_end.h"
 
-#include <iostream>
-#include <algorithm>
 #include <time.h>
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -35,6 +33,7 @@ public:
 #ifdef _WIN32
 		command_line->AppendSwitch( "enable-begin-frame-scheduling" );
 #endif
+
 		// This can interfere with posix signals and break Breakpad
 #ifdef __linux__
 		command_line->AppendSwitch( "disable-in-process-stack-traces" );
@@ -42,8 +41,8 @@ public:
 		// Flatpak, AppImage, and Snap break sandboxing
 		// GMOD_CEF_NO_SANDBOX is for when we want to FORCE it off
 		// TODO(winter): It's not ideal to just outright turn off sandboxing...but Steam does it too, so
-		if (getenv("GMOD_CEF_NO_SANDBOX") || getenv("container") || getenv("APPIMAGE") || getenv("SNAP")) {
-			pResourceHandler->Message("Disabling Chromium sandbox...\n");
+		if ( getenv( "GMOD_CEF_NO_SANDBOX" ) || getenv( "container" ) || getenv( "APPIMAGE" ) || getenv( "SNAP" ) ) {
+			LOG(WARNING) << "Disabling Chromium sandbox...\n";
 			command_line->AppendSwitch("no-sandbox");
 		}
 #endif
@@ -54,8 +53,8 @@ public:
 
 		// https://bitbucket.org/chromiumembedded/cef/issues/2400
 		// DXVAVideoDecoding must be disabled for Proton/Wine
-		// FirstPartySets causes crashing on Chromium 120, also it's an anti-privacy feature
-		command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents,HardwareMediaKeyHandling,DXVAVideoDecoding,FirstPartySets" );
+		// Disable HardwareMediaKeyHandling to prevent external control of media
+		command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents,DXVAVideoDecoding,HardwareMediaKeyHandling" );
 
 		// Auto-play media
 		command_line->AppendSwitchWithValue( "autoplay-policy", "no-user-gesture-required" );
@@ -184,7 +183,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 #elif __linux__
 	std::string platform = "Linux";
 
-#if defined(__x86_64__) || defined(_WIN64)
+#if defined( __x86_64__ ) || defined( _WIN64 )
 	CefString( &settings.browser_subprocess_path ).FromString( strBaseDir + "/bin/linux64/chromium_process" );
 #else
 	CefString( &settings.browser_subprocess_path ).FromString( strBaseDir + "/bin/linux32/chromium_process" );
@@ -203,8 +202,8 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 #error
 #endif
 
-	std::string chrome_version = std::to_string(CHROME_VERSION_MAJOR) + ".0.0.0";
-	CefString(&settings.user_agent).FromString("Mozilla/5.0 (" + platform + "; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" + chrome_version + " Safari/537.36 GMod/13");
+	std::string chrome_version = std::to_string( CHROME_VERSION_MAJOR ) + ".0.0.0";
+	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (" + platform + "; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" + chrome_version + " Safari/537.36 GMod/13" );
 
 	// Rotate log file
 	// TODO(winter): This is probably not the best place to be doing this
@@ -215,38 +214,38 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	std::string cefCachePath = strBaseDir + "/ChromiumCache";
 	std::string cefLockFilePath = cefCachePath + "/lockfile";
 
-	// TODO(winter): What if GMod/CEF crashes? Will the lockfile still be there?
-	if (fs::exists(cefLockFilePath)) {
-		pResourceHandler->Message("Skipping Chromium log rotation (lockfile exists)...\n");
+	// Try to delete the lockfile. If we can't, it's still in use. Crashes could leave it behind
+	fs::remove( cefLockFilePath );
 
-		// TODO(winter): See also ChromiumSystem::Shutdown; we should be clearing these multirun caches instead of keeping them around/reusing them (they can be >500MB EACH)
+	if ( fs::exists( cefLockFilePath ) ) {
+		pResourceHandler->Message( "Skipping Chromium log rotation (lockfile exists)...\n" );
+
 		unsigned int multirunInstanceID = 0;
-		//while (fs::exists(cefCachePath)) {
-		while (fs::exists(cefCachePath) && fs::exists(cefLockFilePath)) {
+		while ( fs::exists( cefCachePath ) && fs::exists( cefLockFilePath ) ) {
 			multirunInstanceID++;
-			cefCachePath = strBaseDir + "/ChromiumCacheMultirun/" + std::to_string(multirunInstanceID);
+			cefCachePath = strBaseDir + "/ChromiumCacheMultirun/" + std::to_string( multirunInstanceID );
 			cefLockFilePath = cefCachePath + "/lockfile";
 		}
 
-		m_MultirunCacheDir = cefCachePath;
+		//m_MultirunCacheDir = cefCachePath;
+		std::string m_MultirunCacheDir = cefCachePath;
 
 		std::string tmpCacheMsg = "Using temporary Chromium cache to support multirun: " + m_MultirunCacheDir + "\n";
-		pResourceHandler->Message(tmpCacheMsg.c_str());
+		pResourceHandler->Message( tmpCacheMsg.c_str() );
 	} else {
-		fs::copy_file(curLogPath, lastLogPath, fs::copy_options::overwrite_existing, rotateError);
+		fs::copy_file( curLogPath, lastLogPath, fs::copy_options::overwrite_existing, rotateError );
 
-		if (rotateError) {
+		if ( rotateError ) {
 			const std::string rotateErrorMsg = "Couldn't rotate chromium.log (copy): " + rotateError.message() + "\n";
-			pResourceHandler->Message(rotateErrorMsg.c_str());
+			pResourceHandler->Message( rotateErrorMsg.c_str() );
 			rotateError.clear();
 		}
 
-		// TODO(winter): Truncate instead?
-		fs::remove(curLogPath, rotateError);
+		fs::remove( curLogPath, rotateError );
 
-		if (rotateError) {
+		if ( rotateError ) {
 			const std::string rotateErrorMsg = "Couldn't rotate chromium.log (remove): " + rotateError.message() + "\n";
-			pResourceHandler->Message(rotateErrorMsg.c_str());
+			pResourceHandler->Message( rotateErrorMsg.c_str() );
 			rotateError.clear();
 		}
 	}
@@ -258,7 +257,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	CefString( &settings.cache_path ).FromString( cefCachePath );
 
 	// Grab our Sandbox info from the "game" exe
-#if defined(_WIN32) && defined(CEF_USE_SANDBOX)
+#if defined( _WIN32 ) && defined( CEF_USE_SANDBOX )
 	HMODULE pModule;
 
 	if ( !GetModuleHandleEx( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &pModule ) )
@@ -286,11 +285,11 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	if ( !CefInitialize( main_args, settings, new ChromiumApp, sandbox_info ) )
 	{
-		pResourceHandler->Message("CefInitialize failed!\n");
+		pResourceHandler->Message( "CefInitialize failed!\n" );
 		return false;
 	}
 
-#if defined(_WIN32) && defined(CEF_USE_SANDBOX)
+#if defined( _WIN32 ) && defined( CEF_USE_SANDBOX )
 	DestroyCefSandboxInfo( sandbox_info );
 #endif
 

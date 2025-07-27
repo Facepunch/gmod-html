@@ -1,13 +1,7 @@
-
 set(TARGET html_chromium)
-set(SOURCES 
+set(SOURCES
 	cef_end.h
 	cef_start.h
-	chromium/dom_code_data.inc
-	chromium/dom_code.h
-	chromium/keycode_converter.cc
-	chromium/keycode_converter.h
-	DomCodeConverter.h
 	ChromiumBrowser.cpp
 	ChromiumBrowser.h
 	ChromiumClient.cpp

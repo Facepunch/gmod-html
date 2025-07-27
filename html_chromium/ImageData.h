@@ -47,10 +47,10 @@ public:
 		return resized;
 	}
 
-	void Blit(const unsigned char* data, int x, int y, int width, int height)
+	void Blit( const unsigned char* data, int x, int y, int width, int height )
 	{
-		if (x + width > m_Wide || y + height > m_Tall) {
-			// TODO: Add error log here for invalid Blit.
+		if ( x + width > m_Wide || y + height > m_Tall ) {
+			LOG(WARNING) << "Invalid Blit!";
 			return;
 		}
 
@@ -62,13 +62,13 @@ public:
 		m_Dirty = true;
 	}
 
-	void BlitRelative(const unsigned char* data, int x, int y, int width, int height)
+	void BlitRelative( const unsigned char* data, int x, int y, int width, int height )
 	{
-		if (x + width > m_Wide || y + height > m_Tall) {
-			// TODO: Add error log here for invalid Blit.
+		if ( x + width > m_Wide || y + height > m_Tall ) {
+			LOG(WARNING) << "Invalid BlitRelative!";
 			return;
 		}
-		
+
 		for ( int SrcY = 0; SrcY < height; SrcY++ )
 		{
 			memcpy( &m_Data[( SrcY + y ) * m_Wide * 4 + x * 4], &data[SrcY * width * 4], width * 4 );
@@ -78,7 +78,8 @@ public:
 
 	void SetData( const unsigned char* data, int wide, int tall )
 	{
-		if (wide > m_Wide || tall > m_Tall) {
+		if ( m_Wide != wide || m_Tall != tall )
+		{
 			// TODO: Add warning log here for invalid data set. Call ResizeData first.
 			ResizeData(wide, tall);
 		}
@@ -105,6 +106,7 @@ public:
 	}
 
 private:
+	friend class ChromiumBrowser;
 	bool m_Dirty;
 
 	int m_Wide;

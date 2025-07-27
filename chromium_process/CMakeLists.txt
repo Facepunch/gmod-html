@@ -1,4 +1,3 @@
-
 set(TARGET chromium_process)
 set(SOURCES
 	ChromiumApp.cpp
@@ -58,7 +57,7 @@ if(OS_LINUX OR OS_WINDOWS)
 		else()
 			install(TARGETS ${TARGET} DESTINATION "${INSTALL_OUT_DIR}/GarrysMod/bin")
 		endif()
-		
+
 		set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME "gmod")
 		target_link_libraries(${TARGET}
 			shlwapi
@@ -161,9 +160,9 @@ else()
 		set_target_properties(${_helper_target} PROPERTIES
 			MACOSX_BUNDLE_INFO_PLIST ${_helper_info_plist}
 			OUTPUT_NAME ${_helper_output_name})
-		
+
 		install(TARGETS ${_helper_target} DESTINATION ${INSTALL_OUT_DIR}/GarrysMod_Signed.app/Contents/Frameworks)
-		
+
 		if(USE_SANDBOX)
 			target_link_libraries(${_helper_target} cef_sandbox_lib)
 		endif()
@@ -174,5 +173,7 @@ endif()
 if(OS_LINUX OR OS_MAC)
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g")
 elseif(OS_WINDOWS)
-	target_link_options(${TARGET} PUBLIC /DEBUG)
+	target_link_options(${TARGET}
+		PUBLIC /DEBUG
+		PUBLIC /STACK:0x180000) # 1.5MiB stack reserve on Windows (matches facepunch's exes, fixes crashes on 32-bit)
 endif()

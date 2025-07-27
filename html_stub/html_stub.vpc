@@ -1,0 +1,35 @@
+$Macro SRCDIR "..\.."
+$Macro OUTBINDIR "$SRCDIR\..\game\bin"
+$Include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
+
+$Include "$SRCDIR\tier0\tier0_exclude.vpc"
+$Include "$SRCDIR\tier1\tier1_exclude.vpc"
+$Include "$SRCDIR\vstdlib\vstdlib_exclude.vpc"
+
+$Configuration
+{
+	$Compiler
+	{
+		$AdditionalIncludeDirectories "$BASE;$SRCDIR\garrysmod"
+	}
+}
+
+$Project "html_stub"
+{
+	$Folder "Interfaces"
+	{
+		$File "$SRCDIR\garrysmod\html\IHtmlSystem.h"
+		$File "$SRCDIR\garrysmod\html\IHtmlClient.h"
+		$File "$SRCDIR\garrysmod\html\IHtmlClientListener.h"
+		$File "$SRCDIR\garrysmod\html\IHtmlResourceHandler.h"
+		$File "$SRCDIR\garrysmod\html\JSValue.h"
+	}
+
+	$Folder "Source Files"
+	{
+		$File "StubSystem.cpp"
+		$File "StubSystem.h"
+		$File "StubClient.cpp"
+		$File "StubClient.h"
+	}
+}

@@ -1,4 +1,3 @@
-
 set(TARGET example_host)
 set(SOURCES
 	Main.cpp

@@ -1,4 +1,4 @@
-﻿#include "ChromiumApp.h"
+#include "ChromiumApp.h"
 
 static bool V8ValueToCefValue( CefRefPtr<CefValue> outValue, const CefRefPtr<CefV8Value>& inValue, int depth = 0 )
 {
@@ -106,8 +106,8 @@ static bool CefValueToV8Value( CefRefPtr<CefV8Value>& outValue, const CefRefPtr<
 		case VTYPE_LIST:
 		{
 			auto inList = inValue->GetList();
-			int size = static_cast<int>(inList->GetSize());
-			outValue = CefV8Value::CreateArray(size);
+			int size = static_cast<int>( inList->GetSize() );
+			outValue = CefV8Value::CreateArray( size );
 
 			for ( int i = 0; i < size; i++ )
 			{
@@ -177,26 +177,26 @@ void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, 
 #endif
 
 	// This can interfere with posix signals and break Breakpad
-#if defined(__linux__) || defined(__APPLE__)
+#if defined( __linux__ ) || defined( __APPLE__ )
 	command_line->AppendSwitch( "disable-in-process-stack-traces" );
 
 	// Flatpak, AppImage, and Snap break sandboxing
 	// GMOD_CEF_NO_SANDBOX is for when we want to FORCE it off
 	// TODO(winter): It's not ideal to just outright turn off sandboxing...but Steam does it too, so
-	if (getenv("GMOD_CEF_NO_SANDBOX") || getenv("container") || getenv("APPIMAGE") || getenv("SNAP")) {
-		pResourceHandler->Message("Disabling Chromium sandbox...\n");
-		command_line->AppendSwitch("no-sandbox");
+	if ( getenv( "GMOD_CEF_NO_SANDBOX" ) || getenv( "container" ) || getenv( "APPIMAGE" ) || getenv( "SNAP" )) {
+		LOG(WARNING) << "Disabling Chromium sandbox...\n";
+		command_line->AppendSwitch( "no-sandbox" );
 	}
 #endif
 
 #ifdef __APPLE__
-	command_line->AppendSwitch( "use-mock-keychain" );
+		command_line->AppendSwitch( "use-mock-keychain" );
 #endif
 
 	// https://bitbucket.org/chromiumembedded/cef/issues/2400
 	// DXVAVideoDecoding must be disabled for Proton/Wine
-	// FirstPartySets causes crashing on Chromium 120, also it's an anti-privacy feature
-	command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents,HardwareMediaKeyHandling,DXVAVideoDecoding,FirstPartySets" );
+	// Disable HardwareMediaKeyHandling to prevent external control of media
+	command_line->AppendSwitchWithValue( "disable-features", "TouchpadAndWheelScrollLatching,AsyncWheelEvents,DXVAVideoDecoding,HardwareMediaKeyHandling" );
 
 	// Auto-play media
 	command_line->AppendSwitchWithValue( "autoplay-policy", "no-user-gesture-required" );

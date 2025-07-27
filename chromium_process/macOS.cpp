@@ -7,18 +7,26 @@
 
 #include "ChromiumApp.h"
 
-int main(int argc, char* argv[]) {
+// Entry point function for sub-processes.
+int main( int argc, char* argv[] ) {
+	// Initialize the macOS sandbox for this helper process.
 #if defined(CEF_USE_SANDBOX)
-  CefScopedSandboxContext sandbox_context;
-  if (!sandbox_context.Initialize(argc, argv))
-    return 1;
+	CefScopedSandboxContext sandbox_context;
+	if ( !sandbox_context.Initialize( argc, argv ) )
+		return 1;
 #endif
 
-  CefScopedLibraryLoader library_loader;
-  if (!library_loader.LoadInHelper())
-    return 1;
+	// Load the CEF framework library at runtime instead of linking directly
+	// as required by the macOS sandbox implementation.
+	CefScopedLibraryLoader library_loader;
+	if ( !library_loader.LoadInHelper() )
+		return 1;
 
-  CefMainArgs main_args(argc, argv);
-  CefRefPtr<ChromiumApp> app(new ChromiumApp());
-  return CefExecuteProcess(main_args, app, nullptr);
+	CefRefPtr<ChromiumApp> chromiumApp( new ChromiumApp );
+
+	// Provide CEF with command-line arguments.
+	CefMainArgs main_args( argc, argv );
+
+	// Execute the sub-process.
+	return CefExecuteProcess( main_args, chromiumApp, nullptr );
 }

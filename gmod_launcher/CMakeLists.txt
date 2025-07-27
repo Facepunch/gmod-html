@@ -1,4 +1,3 @@
-
 set(TARGET gmod_launcher)
 
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")

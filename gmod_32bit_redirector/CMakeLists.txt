@@ -1,4 +1,3 @@
-
 set(TARGET gmod_32bit_redirector)
 
 set(SOURCES

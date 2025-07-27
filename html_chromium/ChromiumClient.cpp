@@ -8,7 +8,6 @@
 #include "include/wrapper/cef_closure_task.h"
 #include "cef_end.h"
 
-#include <iostream>
 #include <string>
 
 ChromiumClient::ChromiumClient( CefRefPtr<ChromiumBrowser> browser, IHtmlClientListener* listener )

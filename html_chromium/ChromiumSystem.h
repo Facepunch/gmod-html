@@ -36,8 +36,6 @@ private:
 
 	base::Lock m_RequestsLock;
 	std::vector<CefRefPtr<ResourceHandler>> m_Requests;
-
-	std::string m_MultirunCacheDir;
 };
 
 // We've got a few bits of code that need to access this directly

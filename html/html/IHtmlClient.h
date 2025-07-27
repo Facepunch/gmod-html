@@ -11,17 +11,17 @@ public:
 	enum class EventModifiers : int
 	{
 		None = 0,
-		Shift = (1 << 0),
-		Control = (1 << 1),
-		Alt = (1 << 2),
-		LeftMouse = (1 << 3),
-		MiddleMouse = (1 << 4),
-		RightMouse = (1 << 5),
-		OSX_Cmd = (1 << 6),
-		ShiftR = (1 << 7),
-		ControlR = (1 << 8),
-		AltGr = (1 << 9),
-		Numpad = (1 << 10)
+		Shift = 1 << 0,
+		Control = 1 << 1,
+		Alt = 1 << 2,
+		LeftMouse = 1 << 3,
+		MiddleMouse = 1 << 4,
+		RightMouse = 1 << 5,
+		OSX_Cmd = 1 << 6,
+		ShiftR = 1 << 7,
+		ControlR = 1 << 8,
+		AltGr = 1 << 9,
+		Numpad = 1 << 10
 	};
 
 	struct KeyEvent
@@ -38,7 +38,7 @@ public:
 		union
 		{
 			unsigned short key_char; // Type::KeyChar
-			int windows_key_code;    // Type::KeyDown / Type::KeyUp
+			int windows_key_code;    // Type::KeyDown / Type::KeyUp;
 		};
 
 		int native_key_code;
@@ -87,7 +87,7 @@ public:
 	// Creates a JavaScript function at <objName>.<funcName>. Any calls to that function go to this page's JS call handler.
 	virtual void RegisterJavaScriptFunction( const char* objName, const char* funcName ) = 0;
 
-	// Opens clicekd links in the user's browser. This should only be set on clients that we trust.
+	// Opens clicked links in the user's browser. This should only be set on clients that we trust.
 	virtual void SetOpenLinksExternally( bool openLinksExternally ) = 0;
 
 	//

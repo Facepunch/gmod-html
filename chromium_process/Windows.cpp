@@ -1,4 +1,3 @@
-
 #include <cstdlib>
 #include <string>
 #include <iostream>
@@ -65,7 +64,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	executable_dir += "\\..\\..";
 #else
 	executable_dir += "\\..";
-	MessageBoxA(NULL, "You may encounter stability issues with Garry's Mod in 32-bit.\n\nPlease consider using the x86-64 beta and launching in 64-bit mode if possible.", "32-bit Warning", 0);
+	//MessageBoxA(NULL, "You may encounter stability issues with Garry's Mod in 32-bit.\n\nPlease consider using the x86-64 beta and launching in 64-bit mode if possible.", "32-bit Warning", 0);
 #endif
 
 	// NOTE: GMod's main branch does _chdir in launcher.dll, which will override this!

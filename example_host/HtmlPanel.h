@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "html/IHtmlSystem.h"

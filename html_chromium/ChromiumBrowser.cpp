@@ -1,8 +1,3 @@
-
-#include <iostream>
-//#include <chrono>
-//#include <thread>
-
 #include "ChromiumBrowser.h"
 
 #include "html/IHtmlClient.h"
@@ -11,9 +6,6 @@
 #include "cef_start.h"
 #include "include/cef_parser.h"
 #include "cef_end.h"
-#include "chromium/dom_code.h"
-#include "chromium/keycode_converter.h"
-#include "DomCodeConverter.h"
 
 #ifdef _WIN32
 	#include <shellapi.h>
@@ -206,45 +198,35 @@ static int GetModifiers( const IHtmlClient::EventModifiers modifiers )
 	int gameModifiers = static_cast<int>( modifiers );
 	int chromiumModifiers = 0;
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Shift ) ) {
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Shift ) )
 		chromiumModifiers |= EVENTFLAG_SHIFT_DOWN | EVENTFLAG_IS_LEFT;
-	}
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::ShiftR ) ) {
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::ShiftR ) )
 		chromiumModifiers |= EVENTFLAG_SHIFT_DOWN | EVENTFLAG_IS_RIGHT;
-	}
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Control ) ) {
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Control ) )
 		chromiumModifiers |= EVENTFLAG_CONTROL_DOWN | EVENTFLAG_IS_LEFT;
-	}
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::ControlR ) ) {
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::ControlR ) )
 		chromiumModifiers |= EVENTFLAG_CONTROL_DOWN | EVENTFLAG_IS_RIGHT;
-	}
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Alt ) ) {
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Alt ) )
 		chromiumModifiers |= EVENTFLAG_ALT_DOWN | EVENTFLAG_IS_LEFT;
-	}
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::AltGr ) ) {
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::AltGr ) )
 		chromiumModifiers |= EVENTFLAG_ALT_DOWN | EVENTFLAG_IS_RIGHT; // EVENTFLAG_ALTGR_DOWN undefined on Linux?
-	}
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::LeftMouse ) ) {
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::LeftMouse ) )
 		chromiumModifiers |= EVENTFLAG_LEFT_MOUSE_BUTTON;
-	}
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::MiddleMouse ) ) {
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::MiddleMouse ) )
 		chromiumModifiers |= EVENTFLAG_MIDDLE_MOUSE_BUTTON;
-	}
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::RightMouse ) ) {
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::RightMouse ) )
 		chromiumModifiers |= EVENTFLAG_RIGHT_MOUSE_BUTTON;
-	}
 
-	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Numpad ) ) {
+	if ( gameModifiers & static_cast<int>( IHtmlClient::EventModifiers::Numpad ) )
 		chromiumModifiers |= EVENTFLAG_IS_KEY_PAD;
-	}
 
 	return chromiumModifiers;
 }
@@ -257,7 +239,7 @@ ChromiumBrowser::ChromiumBrowser()
 	, m_PopupData( nullptr )
 	, m_OpenLinksExternally( false )
 {
-	RunOrDeferForInit([this] {
+	RunOrDeferForInit([ this ] {
 		m_BrowserHost->WasResized();
 	});
 }
@@ -289,14 +271,14 @@ void ChromiumBrowser::QueueMessage( MessageQueue::Message&& message )
 //
 void ChromiumBrowser::Close()
 {
-	RunOrDeferForInit([this] {
-		m_BrowserHost->CloseBrowser(true);
+	RunOrDeferForInit([ this ] {
+		m_BrowserHost->CloseBrowser( true );
 	});
 }
 
 void ChromiumBrowser::SetSize( int wide, int tall )
 {
-	RunOrDeferForInit([this, wide, tall] {
+	RunOrDeferForInit([ this, wide, tall ] {
 		m_Wide = wide;
 		m_Tall = tall;
 		m_BrowserHost->WasResized();
@@ -305,8 +287,8 @@ void ChromiumBrowser::SetSize( int wide, int tall )
 
 void ChromiumBrowser::SetFocused( bool hasFocus )
 {
-	RunOrDeferForInit([this, hasFocus] {
-		m_BrowserHost->SetFocus(hasFocus);
+	RunOrDeferForInit([ this, hasFocus ] {
+		m_BrowserHost->SetFocus( hasFocus );
 	});
 }
 
@@ -346,7 +328,7 @@ void ChromiumBrowser::SendKeyEvent( IHtmlClient::KeyEvent keyEvent )
 
 void ChromiumBrowser::SendMouseMoveEvent( IHtmlClient::MouseEvent gmodMouseEvent, bool mouseLeave )
 {
-	if (m_BrowserHost == nullptr) {
+	if ( m_BrowserHost == nullptr ) {
 		return;
 	}
 
@@ -360,11 +342,11 @@ void ChromiumBrowser::SendMouseMoveEvent( IHtmlClient::MouseEvent gmodMouseEvent
 
 void ChromiumBrowser::SendMouseWheelEvent( IHtmlClient::MouseEvent gmodMouseEvent, int deltaX, int deltaY )
 {
-	if (m_BrowserHost == nullptr) {
+	if ( m_BrowserHost == nullptr ) {
 		return;
 	}
 
-	// TODO(willox): Some CEF bug is fucking this up. I don't care much for worrying about it yet
+	// TODO(sophie): Some CEF bug is fucking this up. I don't care much for worrying about it yet
 	CefMouseEvent mouseEvent;
 	mouseEvent.x = gmodMouseEvent.x;
 	mouseEvent.y = gmodMouseEvent.y;
@@ -375,7 +357,7 @@ void ChromiumBrowser::SendMouseWheelEvent( IHtmlClient::MouseEvent gmodMouseEven
 
 void ChromiumBrowser::SendMouseClickEvent( IHtmlClient::MouseEvent gmodMouseEvent, IHtmlClient::MouseButton gmodButtonType, bool mouseUp, int clickCount )
 {
-	if (m_BrowserHost == nullptr) {
+	if ( m_BrowserHost == nullptr ) {
 		return;
 	}
 
@@ -404,77 +386,78 @@ void ChromiumBrowser::SendMouseClickEvent( IHtmlClient::MouseEvent gmodMouseEven
 
 void ChromiumBrowser::LoadUrl( const std::string& url )
 {
-	RunOrDeferForInit([this, url] {
-		m_Browser->GetMainFrame()->LoadURL(CefString(url));
+	RunOrDeferForInit([ this, url ] {
+		m_Browser->GetMainFrame()->LoadURL( CefString( url ) );
 	});
 }
 
 void ChromiumBrowser::SetHtml( const std::string& html )
 {
-	RunOrDeferForInit([this, html] {
+	// asset://html/?{myhtml}
+	RunOrDeferForInit([ this, html ] {
 		CefURLParts urlParts;
-		CefString(&urlParts.scheme).FromString("asset");
-		CefString(&urlParts.host).FromString("html");
-		CefString(&urlParts.path).FromString("/");
-		CefString(&urlParts.query).FromString(CefBase64Encode(html.c_str(), html.size()));
+		CefString( &urlParts.scheme ).FromString( "asset" );
+		CefString( &urlParts.host ).FromString( "html" );
+		CefString( &urlParts.path ).FromString( "/" );
+		CefString( &urlParts.query ).FromString( CefBase64Encode( html.c_str(), html.size() ) );
 
 		CefString url;
-		if (!CefCreateURL(urlParts, url))
+		if ( !CefCreateURL( urlParts, url ) )
 			return;
 
-		m_Browser->GetMainFrame()->LoadURL(url);
+		m_Browser->GetMainFrame()->LoadURL( url );
 	});
 }
 
 void ChromiumBrowser::Refresh()
 {
-	RunOrDeferForInit([this] {
+	RunOrDeferForInit([ this ] {
 		m_Browser->Reload();
 	});
 }
 
 void ChromiumBrowser::Stop()
 {
-	RunOrDeferForInit([this] {
+	RunOrDeferForInit([ this ] {
 		m_Browser->StopLoad();
 	});
 }
 
 void ChromiumBrowser::GoBack()
 {
-	RunOrDeferForInit([this] {
+	RunOrDeferForInit([ this ] {
 		m_Browser->GoBack();
 	});
 }
 
 void ChromiumBrowser::GoForward()
 {
-	RunOrDeferForInit([this] {
+	RunOrDeferForInit([ this ] {
 		m_Browser->GoForward();
 	});
 }
 
 void ChromiumBrowser::RunJavaScript( const std::string& code )
 {
-	RunOrDeferForInit([this, code] {
-		auto message = CefProcessMessage::Create("ExecuteJavaScript");
+	RunOrDeferForInit([ this, code ] {
+		auto message = CefProcessMessage::Create( "ExecuteJavaScript" );
 		auto args = message->GetArgumentList();
 
-		args->SetString(0, "Lua File");
-		args->SetString(1, code);
-		m_Browser->GetMainFrame()->SendProcessMessage(PID_RENDERER, message);
+		args->SetString( 0, "Lua File" );
+		args->SetString( 1, code );
+		m_Browser->GetMainFrame()->SendProcessMessage( PID_RENDERER, message );
 	});
 }
 
 void ChromiumBrowser::RegisterJavaScriptFunction( const std::string& objName, const std::string& funcName )
 {
-	RunOrDeferForInit([this, objName, funcName] {
-		auto message = CefProcessMessage::Create("RegisterFunction");
+	RunOrDeferForInit([ this, objName, funcName ] {
+		auto message = CefProcessMessage::Create( "RegisterFunction" );
 		auto args = message->GetArgumentList();
 
-		args->SetString(0, objName);
-		args->SetString(1, funcName);
-		m_Browser->GetMainFrame()->SendProcessMessage(PID_RENDERER, message);
+		args->SetString( 0, objName );
+		args->SetString( 1, funcName );
+		m_Browser->GetMainFrame()->SendProcessMessage( PID_RENDERER, message );
 	});
 }
 
@@ -485,19 +468,19 @@ void ChromiumBrowser::SetOpenLinksExternally( bool openLinksExternally )
 
 void ChromiumBrowser::ExecuteCallback( int callbackId, const JSValue& paramsArray )
 {
-	RunOrDeferForInit([this, callbackId, paramsArray] {
-		const auto& paramsVector = (static_cast<const JSArray*>(paramsArray.GetInternalArray()))->GetInternalData(); // spaghetti
-		auto message = CefProcessMessage::Create("ExecuteCallback");
+	RunOrDeferForInit([ this, callbackId, paramsArray ] {
+		const auto& paramsVector = ( static_cast<const JSArray*>( paramsArray.GetInternalArray() ) )->GetInternalData(); // spaghetti
+		auto message = CefProcessMessage::Create( "ExecuteCallback" );
 		auto outArgs = message->GetArgumentList();
 
 		auto cefArgs = CefListValue::Create();
-		if (!JSValuesToCefList(cefArgs, paramsVector))
+		if ( !JSValuesToCefList( cefArgs, paramsVector ) )
 			return;
 
-		outArgs->SetInt(0, callbackId);
-		outArgs->SetList(1, cefArgs);
+		outArgs->SetInt( 0, callbackId );
+		outArgs->SetList( 1, cefArgs );
 
-		m_Browser->GetMainFrame()->SendProcessMessage(PID_RENDERER, message);
+		m_Browser->GetMainFrame()->SendProcessMessage( PID_RENDERER, message );
 	});
 }
 
@@ -646,8 +629,7 @@ void ChromiumBrowser::OnTitleChange( CefRefPtr<CefBrowser>, const CefString& tit
 	QueueMessage( std::move( msg ) );
 }
 
-bool ChromiumBrowser::OnCursorChange( CefRefPtr<CefBrowser> browser, CefCursorHandle, cef_cursor_type_t chromeCursor, const CefCursorInfo& )
-{
+bool ChromiumBrowser::OnCursorChange( CefRefPtr<CefBrowser> browser, CefCursorHandle, cef_cursor_type_t chromeCursor, const CefCursorInfo& ){
 	using GModCursorType = IHtmlClientListener::CursorType;
 	GModCursorType gmodCursor;
 
@@ -726,6 +708,7 @@ bool ChromiumBrowser::OnCursorChange( CefRefPtr<CefBrowser> browser, CefCursorHa
 	return false;
 }
 
+
 //
 // CefRenderHandler interface
 //
@@ -768,9 +751,10 @@ void ChromiumBrowser::OnPopupSize( CefRefPtr<CefBrowser>, const CefRect& rect )
 
 bool ShouldFullCopy( const CefRenderHandler::RectList& dirtyRects, int width, int height ) {
 	int dirty_area = 0;
-	for (auto &&rect : dirtyRects) {
+	for ( auto &&rect : dirtyRects ) {
 		dirty_area += rect.width * rect.height;
 	}
+
 	// TODO: Find optimal threshold using benchmarking.
 	return dirty_area > 0.8 * width * height;
 }
@@ -797,13 +781,13 @@ void ChromiumBrowser::OnPaint( CefRefPtr<CefBrowser>, CefRenderHandler::PaintEle
 
 			if ( m_ImageData.ResizeData( width, height ) || ShouldFullCopy( dirtyRects, width, height ) ) {
 				// Copy whole buffer over ImageData
-				m_ImageData.SetData(static_cast<const unsigned char*>(buffer), width, height);
+				m_ImageData.SetData( static_cast<const unsigned char*>( buffer ), width, height );
 			} else {
 				// Blit the dirty parts of buffer over ImageData
-				for (auto &&rect : dirtyRects)
+				for ( auto &&rect : dirtyRects )
 				{
-					if (!rect.IsEmpty()) {
-						m_ImageData.Blit(static_cast<const unsigned char*>(buffer), rect.x, rect.y, rect.width, rect.height);
+					if ( !rect.IsEmpty() ) {
+						m_ImageData.Blit( static_cast<const unsigned char*>(buffer), rect.x, rect.y, rect.width, rect.height );
 					}
 				}
 			}
@@ -811,7 +795,7 @@ void ChromiumBrowser::OnPaint( CefRefPtr<CefBrowser>, CefRenderHandler::PaintEle
 			// Blit our popup over the ImageData
 			if ( m_PopupWide > 0 && m_PopupTall > 0 )
 			{
-				m_ImageData.BlitRelative(m_PopupData, m_PopupX, m_PopupY, m_PopupWide, m_PopupTall);
+				m_ImageData.BlitRelative( m_PopupData, m_PopupX, m_PopupY, m_PopupWide, m_PopupTall );
 			}
 
 			m_ImageData.Unlock();
@@ -821,8 +805,8 @@ void ChromiumBrowser::OnPaint( CefRefPtr<CefBrowser>, CefRenderHandler::PaintEle
 
 void ChromiumBrowser::OnAcceleratedPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, const CefAcceleratedPaintInfo& info)
 {
-	// TODO: Implement once fixed for OSR on Viz
-	// TODO: See ChromiumSystem::CreateClient
+	// TODO: This should work again after CEF 127+. Implement it!
+	// TODO: See also ChromiumSystem::CreateClient
 	// https://bitbucket.org/chromiumembedded/cef/pull-requests/285/reimplement-shared-texture-support-for-viz
 
 	LOG(ERROR) << "ChromiumBrowser::OnAcceleratedPaint";
@@ -885,24 +869,24 @@ bool ChromiumBrowser::OnBeforeBrowse( CefRefPtr<CefBrowser>,
 	{
 		std::string url = request->GetURL().ToString();
 
-#if defined(_WIN32)
-		ShellExecuteA(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
-#elif defined(__linux__)
+#if defined( _WIN32 )
+		ShellExecuteA( NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL );
+#elif defined( __linux__ )
 		pid_t pid = fork();
-		if (pid == 0) {
-			execlp("xdg-open", "xdg-open", url.c_str(), NULL);
-			exit(0);
-		} else if (pid < 0) {
-			LOG(ERROR) << "Failed to open URL in external browser: " << url;
+		if ( pid == 0 ) {
+			execlp( "xdg-open", "xdg-open", url.c_str(), NULL );
+			exit( 0 );
+		} else if ( pid < 0 ) {
+			LOG( ERROR ) << "Failed to open URL in external browser: " << url;
 		} else {
 			// TODO: Should we wait for the child process to finish?
-			waitpid(pid, NULL, 0);
+			waitpid( pid, NULL, 0 );
 		}
-#elif defined(__APPLE__)
-		CFURLRef urlRef = CFURLCreateWithBytes(NULL, (const UInt8 *)url.c_str(), url.length(), kCFStringEncodingUTF8, NULL);
-		if (urlRef) {
-			LSOpenCFURLRef(urlRef, NULL);
-			CFRelease(urlRef);
+#elif defined( __APPLE__ )
+		CFURLRef urlRef = CFURLCreateWithBytes( NULL, (const UInt8 *)url.c_str(), url.length(), kCFStringEncodingUTF8, NULL );
+		if ( urlRef ) {
+			LSOpenCFURLRef( urlRef, NULL );
+			CFRelease( urlRef );
 		}
 #else
 #error Unsupported platform
@@ -933,11 +917,6 @@ ChromiumBrowser::ReturnValue ChromiumBrowser::OnBeforeResourceLoad( CefRefPtr<Ce
 		return RV_CONTINUE;
 	}
 
-	// Stop anti-devtool garbage that prevents interacting with some sites
-	if ( request->GetURL().ToString().find("disable-devtool") != std::string::npos ) {
-		return RV_CANCEL;
-	}
-
 	if ( strScheme != "http" && strScheme != "https" && strScheme != "asset" )
 	{
 		return RV_CANCEL;
@@ -953,6 +932,7 @@ void ChromiumBrowser::OnProtocolExecution( CefRefPtr<CefBrowser>,
 {
 	allow_os_execution = false;
 }
+
 
 //
 // CefContextMenuHandler interface

@@ -1,4 +1,3 @@
-
 #include <string>
 
 #ifdef _WIN32
@@ -51,7 +50,7 @@ bool HtmlSystem_Init()
 
 	if ( library == nullptr )
 		return false;
-	
+
 	IHtmlSystem** ppHtmlSystem = reinterpret_cast<IHtmlSystem**>( dlsym( library, "g_pHtmlSystem" ) );
 
 	if ( ppHtmlSystem == nullptr || *ppHtmlSystem == nullptr )
@@ -63,7 +62,7 @@ bool HtmlSystem_Init()
 	if ( getcwd( pPath, sizeof( pPath ) ) == NULL )
 		return false;
 	strcat(pPath, "/../../");
-	
+
 	return g_pHtmlSystem->Init( canonicalize_file_name(pPath), &g_ResourceHandler );
 #else
 	#error

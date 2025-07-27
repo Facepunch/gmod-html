@@ -1,4 +1,3 @@
-
 set(SOURCES
 	StubClient.cpp
 	StubClient.h
