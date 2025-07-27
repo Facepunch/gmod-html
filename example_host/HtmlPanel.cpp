@@ -48,14 +48,14 @@ void HtmlPanel::UpdateTexture()
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_BGRA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, data );
 
-		m_Texture = reinterpret_cast<ImTextureID>( texture );
+		m_Texture = reinterpret_cast<ImTextureID>( static_cast<uintptr_t>( texture ) );
 		m_TextureWidth = width;
 		m_TextureHeight = height;
 	}
 	else
 	{
 		// Update current texture
-		glBindTexture( GL_TEXTURE_2D, reinterpret_cast<GLuint>( m_Texture ) );
+		glBindTexture( GL_TEXTURE_2D, static_cast<GLuint>( reinterpret_cast<uintptr_t>( m_Texture ) ) );
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, data );
 	}
 
