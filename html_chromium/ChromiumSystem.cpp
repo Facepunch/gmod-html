@@ -1,4 +1,4 @@
-﻿#include "ChromiumSystem.h"
+#include "ChromiumSystem.h"
 #include "ChromiumClient.h"
 #include "ChromiumBrowser.h"
 #include "ResourceHandler.h"
@@ -215,7 +215,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	if ( fs::exists( cefLockFilePath ) ) {
 		pResourceHandler->Message( "Skipping Chromium log rotation (lockfile exists)...\n" );
-		
+
 		unsigned int multirunInstanceID = 0;
 		while ( fs::exists( cefCachePath ) && fs::exists( cefLockFilePath ) ) {
 			multirunInstanceID++;

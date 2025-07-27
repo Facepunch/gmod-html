@@ -37,7 +37,7 @@ if(OS_LINUX OR OS_WINDOWS)
 		else()
 			install(TARGETS ${TARGET} DESTINATION "${INSTALL_OUT_DIR}/GarrysMod/bin")
 		endif()
-		
+
 		set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME "gmod")
 		target_link_libraries(${TARGET}
 			shlwapi
@@ -120,9 +120,9 @@ else()
 		set_target_properties(${_helper_target} PROPERTIES
 			MACOSX_BUNDLE_INFO_PLIST ${_helper_info_plist}
 			OUTPUT_NAME ${_helper_output_name})
-		
+
 		install(TARGETS ${_helper_target} DESTINATION ${INSTALL_OUT_DIR}/GarrysMod_Signed.app/Contents/Frameworks)
-		
+
 		if(USE_SANDBOX)
 			target_link_libraries(${_helper_target} cef_sandbox_lib)
 		endif()

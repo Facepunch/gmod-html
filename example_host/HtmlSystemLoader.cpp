@@ -14,7 +14,7 @@ IHtmlSystem* g_pHtmlSystem;
 bool HtmlSystem_Init()
 {
 #ifdef _WIN32
-	HMODULE	hDLL = LoadLibrary( "html_chromium.dll" );
+	HMODULE hDLL = LoadLibrary( "html_chromium.dll" );
 
 	if ( hDLL == nullptr )
 		return false;

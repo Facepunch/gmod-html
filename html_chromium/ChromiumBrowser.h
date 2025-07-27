@@ -58,7 +58,7 @@ public:
 
 public:
 	//
-	// CefClient interface 
+	// CefClient interface
 	//
 	CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override { return this; }
 	CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
@@ -126,7 +126,7 @@ public:
 		bool& disable_default_handling ) override {
 		return this;
 	}
-	
+
 	bool OnOpenURLFromTab( CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame,
 		const CefString& target_url,

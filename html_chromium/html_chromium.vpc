@@ -40,7 +40,7 @@ $Project "html_chromium"
 		$File "$SRCDIR\garrysmod\html\IHtmlResourceHandler.h"
 		$File "$SRCDIR\garrysmod\html\JSValue.h"
 	}
-	
+
 	$Folder "Source Files"
 	{
 		$File "ChromiumSystem.cpp"
