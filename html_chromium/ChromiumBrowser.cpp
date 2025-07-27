@@ -917,6 +917,11 @@ ChromiumBrowser::ReturnValue ChromiumBrowser::OnBeforeResourceLoad( CefRefPtr<Ce
 		return RV_CONTINUE;
 	}
 
+	// Stop anti-devtool garbage that prevents interacting with some sites
+	if ( request->GetURL().ToString().find("disable-devtool") != std::string::npos ) {
+		return RV_CANCEL;
+	}
+
 	if ( strScheme != "http" && strScheme != "https" && strScheme != "asset" )
 	{
 		return RV_CANCEL;
