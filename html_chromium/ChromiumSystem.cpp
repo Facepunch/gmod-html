@@ -60,7 +60,10 @@ public:
 		command_line->AppendSwitchWithValue( "autoplay-policy", "no-user-gesture-required" );
 
 		// Disable site isolation until we implement passing registered Lua functions between processes
-		command_line->AppendSwitch( "disable-site-isolation-trials" );
+		//command_line->AppendSwitch( "disable-site-isolation-trials" );
+
+		// Enable remote debugging; see also: settings.remote_debugging_port
+		//command_line->AppendSwitchWithValue( "remote-allow-origins", "http://localhost:9222" );
 	}
 
 	void OnRegisterCustomSchemes( CefRawPtr<CefSchemeRegistrar> registrar ) override
@@ -103,6 +106,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 
 	std::string strBaseDir = pBaseDir;
 
+	//settings.remote_debugging_port = 9222;
 	settings.remote_debugging_port = 0;
 	settings.windowless_rendering_enabled = true;
 

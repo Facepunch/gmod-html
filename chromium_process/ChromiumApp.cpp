@@ -202,7 +202,10 @@ void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, 
 	command_line->AppendSwitchWithValue( "autoplay-policy", "no-user-gesture-required" );
 
 	// Disable site isolation until we implement passing registered Lua functions between processes
-	command_line->AppendSwitch( "disable-site-isolation-trials" );
+	//command_line->AppendSwitch( "disable-site-isolation-trials" );
+
+	// Enable remote debugging; see also: settings.remote_debugging_port
+	//command_line->AppendSwitchWithValue( "remote-allow-origins", "http://localhost:9222" );
 }
 
 void ChromiumApp::OnRegisterCustomSchemes( CefRawPtr<CefSchemeRegistrar> registrar )
