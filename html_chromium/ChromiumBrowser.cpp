@@ -224,6 +224,8 @@ ChromiumBrowser::ChromiumBrowser()
 	, m_Tall( 512 )
 	, m_PopupWide( 0 )
 	, m_PopupTall( 0 )
+	, m_PopupX( 0 )
+	, m_PopupY( 0 )
 	, m_PopupData( nullptr )
 	, m_OpenLinksExternally( false )
 {}
@@ -812,16 +814,18 @@ ChromiumBrowser::ReturnValue ChromiumBrowser::OnBeforeResourceLoad( CefRefPtr<Ce
 	CefRefPtr<CefRequest> request,
 	CefRefPtr<CefRequestCallback> )
 {
+	CefString sourceUrl = request->GetURL();
+
 	CefURLParts urlParts;
-	if ( !CefParseURL( request->GetURL(), urlParts ) )
+	if ( !CefParseURL( sourceUrl, urlParts ) )
 		return RV_CANCEL;
 
-	CefString strScheme	( &urlParts.scheme );
+	CefString strScheme( &urlParts.scheme );
 
 	// Let us see the credits :)
-	if ( request->GetURL() == "chrome://credits/" ||
-		request->GetURL() == "chrome://resources/js/cr.js" ||
-		request->GetURL() == "chrome://credits/credits.js" )
+	if ( sourceUrl == "chrome://credits/" ||
+		sourceUrl == "chrome://resources/js/cr.js" ||
+		sourceUrl == "chrome://credits/credits.js" )
 	{
 		return RV_CONTINUE;
 	}

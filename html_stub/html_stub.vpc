@@ -16,6 +16,8 @@ $Configuration
 
 $Project "html_stub"
 {
+	$Group "Game"
+
 	$Folder "Interfaces"
 	{
 		$File "$SRCDIR\garrysmod\html\IHtmlSystem.h"

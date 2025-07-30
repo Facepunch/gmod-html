@@ -1,6 +1,6 @@
 $Macro SRCDIR		"..\..\.."
 
-// GMOD: GO - We have to append the PLATSUBDIR manually here because EXEs are unique.
+// GMOD - We have to append the PLATSUBDIR manually here because EXEs are unique.
 $Include "$SRCDIR\vpc_scripts\platform_dirs.vpc"
 $Macro OUTBINDIR	"$SRCDIR\..\game\bin" [$WIN32]
 $Macro OUTBINDIR	"$SRCDIR\..\game\bin\$PLATSUBDIR" [!$WIN32 && !$OSX64]

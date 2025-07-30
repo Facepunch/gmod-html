@@ -162,7 +162,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 		chromiumDir = targetPath.string();
 	}
 
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Windows NT; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36 GMod/13" );
+	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Windows NT; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36 GMod/13" );
 
 	// GMOD: GO - We use the same resources with 32-bit and 64-bit builds, so always use the 32-bit bin path for them
 	CefString( &settings.resources_dir_path ).FromString( chromiumDir );
@@ -239,7 +239,6 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 		CefAddCrossOriginWhitelistEntry( "asset://mapimage", "http", "", true );
 		CefAddCrossOriginWhitelistEntry( "asset://mapimage", "https", "", true );
 		CefAddCrossOriginWhitelistEntry( "asset://mapimage", "asset", "", true );
-
 	}
 
 	{
