@@ -108,7 +108,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	settings.no_sandbox = false;
 #endif
 	settings.command_line_args_disabled = true;
-	settings.log_severity = LOGSEVERITY_VERBOSE;
+	settings.log_severity = LOGSEVERITY_DEFAULT;
 
 #ifdef _WIN32
 	// Chromium will be sad if we don't resolve any NTFS junctions for it
