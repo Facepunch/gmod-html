@@ -23,7 +23,7 @@ public:
 	// IHtmlClientListener
 	//
 	void OnAddressChange( const char* address ) override;
-	void OnConsoleMessage( const char* message, const char* source, int lineNumber ) override;
+	void OnConsoleMessage( const char* message, const char* source, int lineNumber, int severity ) override;
 	void OnTitleChange( const char* title ) override;
 	void OnTargetUrlChange( const char* url ) override;
 	void OnCursorChange( CursorType cursorType ) override;

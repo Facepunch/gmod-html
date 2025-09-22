@@ -33,7 +33,7 @@ void ChromiumClient::Update()
 					m_Listener->OnAddressChange( msg.string1.c_str() );
 					break;
 				case MessageQueue::Type::OnConsoleMessage:
-					m_Listener->OnConsoleMessage( msg.string1.c_str(), msg.string2.c_str(), msg.integer );
+					m_Listener->OnConsoleMessage( msg.string1.c_str(), msg.string2.c_str(), msg.integer, msg.integer2 );
 					break;
 				case MessageQueue::Type::OnTitleChange:
 					m_Listener->OnTitleChange( msg.string1.c_str() );

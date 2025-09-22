@@ -89,7 +89,7 @@ void HtmlPanel::OnAddressChange( const char* address )
 	std::cout << "OnAddressChange: " << address << std::endl;
 }
 
-void HtmlPanel::OnConsoleMessage( const char* message, const char* source, int lineNumber )
+void HtmlPanel::OnConsoleMessage( const char* message, const char* source, int lineNumber, int severity )
 {
 	std::cout << source << ":" << lineNumber << ": " << message << std::endl;
 }

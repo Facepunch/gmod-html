@@ -27,7 +27,7 @@ public:
 
 public:
 	virtual void OnAddressChange( const char* address ) = 0;
-	virtual void OnConsoleMessage( const char* message, const char* source, int lineNumber ) = 0;
+	virtual void OnConsoleMessage( const char* message, const char* source, int lineNumber, int severity ) = 0;
 	virtual void OnTitleChange( const char* title ) = 0;
 	virtual void OnTargetUrlChange( const char* url ) = 0;
 	virtual void OnCursorChange( CursorType cursorType ) = 0;

@@ -558,6 +558,7 @@ bool ChromiumBrowser::OnConsoleMessage( CefRefPtr<CefBrowser>, cef_log_severity_
 	msg.string1 = message.ToString();
 	msg.string2 = source.ToString();
 	msg.integer = line;
+	msg.integer2 = level;
 	QueueMessage( std::move( msg ) );
 
 	return false;

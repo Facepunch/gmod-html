@@ -31,6 +31,7 @@ public:
 	{
 		Type type;
 		int integer;
+		int integer2;
 		std::string string1;
 		std::string string2;
 		JSValue jsParams;
