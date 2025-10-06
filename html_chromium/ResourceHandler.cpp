@@ -90,6 +90,7 @@ void ResourceHandler::GetResponseHeaders( CefRefPtr<CefResponse> response, cef_i
 	else if ( ext == "jpeg" ) mimeType = "image/jpg";
 	else if ( ext == "css" ) mimeType = "text/css";
 	else if ( ext == "js" ) mimeType = "text/javascript";
+	else if ( ext == "svg" ) mimeType = "image/svg+xml";
 
 	response->SetStatus( 200 );
 	response->SetMimeType( mimeType );
