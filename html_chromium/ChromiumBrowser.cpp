@@ -1,4 +1,4 @@
-﻿#include "ChromiumBrowser.h"
+#include "ChromiumBrowser.h"
 
 #include "html/IHtmlClient.h"
 #include "JSObjects.h"

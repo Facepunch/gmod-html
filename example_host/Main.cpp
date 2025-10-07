@@ -88,9 +88,9 @@ int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
-		
+
 			panel->Render();
-			
+
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
 
