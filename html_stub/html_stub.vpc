@@ -26,7 +26,7 @@ $Project "html_stub"
 		$File "$SRCDIR\garrysmod\html\IHtmlResourceHandler.h"
 		$File "$SRCDIR\garrysmod\html\JSValue.h"
 	}
-	
+
 	$Folder "Source Files"
 	{
 		$File "StubSystem.cpp"

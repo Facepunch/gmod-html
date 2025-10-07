@@ -291,4 +291,3 @@ private:
 		IHashMap* _pHashMap;    // Type::HashMap
 	};
 };
-

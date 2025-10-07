@@ -186,4 +186,3 @@ const unsigned char* ChromiumClient::GetImageData( int& imageWide, int& imageTal
 	ImageData& imageData = m_Browser->GetImageData();
 	return imageData.GetData( imageWide, imageTall );
 }
-

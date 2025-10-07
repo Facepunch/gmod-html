@@ -1,4 +1,4 @@
-﻿#include "ChromiumSystem.h"
+#include "ChromiumSystem.h"
 #include "ChromiumClient.h"
 #include "ChromiumBrowser.h"
 #include "ResourceHandler.h"
