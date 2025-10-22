@@ -8,7 +8,7 @@
 #include "cef_start.h"
 #include "include/cef_app.h"
 #include "include/cef_origin_whitelist.h"
-#ifdef OSX
+#ifdef __APPLE__
 #include "include/wrapper/cef_library_loader.h"
 #endif
 #include "cef_end.h"
@@ -39,11 +39,11 @@ public:
 		command_line->AppendSwitch( "enable-system-flash" );
 
 		// This can interfere with posix signals and break Breakpad
-#ifdef POSIX
+#if defined( __APPLE__ ) || defined( __linux__ )
 		command_line->AppendSwitch( "disable-in-process-stack-traces" );
 #endif
 
-#ifdef OSX
+#ifdef __APPLE__
 		command_line->AppendSwitch( "use-mock-keychain" );
 #endif
 
@@ -78,7 +78,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 {
 	g_pHtmlResourceHandler = pResourceHandler;
 
-#ifdef OSX
+#ifdef __APPLE__
 	static CefScopedLibraryLoader library_loader;
 	if ( !library_loader.LoadInMain() )
 	{
@@ -86,7 +86,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	}
 #endif
 
-#ifdef POSIX
+#if defined( __APPLE__ ) || defined( __linux__ )
 	// GMOD: GO - Chromium will replace Breakpad's signal handlers if we don't do this early
 	int argc = 2;
 	char arg1[] = "binary";
@@ -113,13 +113,13 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 #ifdef _WIN32
 	// Chromium will be sad if we don't resolve any NTFS junctions for it
 	// Is this really the only way Windows will let me do that?
-	auto hFile = CreateFile( strBaseDir.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL );
+	auto hFile = CreateFileA( strBaseDir.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL );
 	bool useTempDir = false;
 
 	if ( hFile != INVALID_HANDLE_VALUE )
 	{
 		char pathBuf[MAX_PATH] = { 0 };
-		if ( GetFinalPathNameByHandle( hFile, pathBuf, sizeof( pathBuf ), VOLUME_NAME_DOS ) )
+		if ( GetFinalPathNameByHandleA( hFile, pathBuf, sizeof( pathBuf ), VOLUME_NAME_DOS ) )
 		{
 			// If it's a network drive, we can't use it
 			if ( strstr( pathBuf, "\\\\?\\UNC" ) == pathBuf )
@@ -169,8 +169,8 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	CefString( &settings.locales_dir_path ).FromString( chromiumDir + "/locales" );
 
 	settings.multi_threaded_message_loop = true;
-#elif LINUX
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Linux; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36 GMod/13" );
+#elif __linux__
+	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Linux; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36 GMod/13" );
 
 #if defined(__x86_64__) || defined(_WIN64)
 	CefString( &settings.browser_subprocess_path ).FromString( strBaseDir + "/bin/linux64/chromium_process" );
@@ -183,8 +183,8 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 	CefString( &settings.locales_dir_path ).FromString( strBaseDir + "/bin/linux32/chromium/locales" );
 
 	settings.multi_threaded_message_loop = true;
-#elif OSX
-	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Macintosh; Intel Mac OS X; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36 GMod/13" );
+#elif __APPLE__
+	CefString( &settings.user_agent ).FromString( "Mozilla/5.0 (Macintosh; Intel Mac OS X; Valve Source Client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36 GMod/13" );
 #else
 #error
 #endif
@@ -250,7 +250,7 @@ bool ChromiumSystem::Init( const char* pBaseDir, IHtmlResourceHandler* pResource
 		CefAddCrossOriginWhitelistEntry( "asset://html", "asset", "", true );
 	}
 
-#ifdef OSX
+#ifdef __APPLE__
 	CefDoMessageLoopWork();
 #endif
 
@@ -299,7 +299,7 @@ void ChromiumSystem::Update()
 	m_RequestsLock.Release();
 
 	// macOS will want me
-#ifdef OSX
+#ifdef __APPLE__
 	CefDoMessageLoopWork();
 #endif
 
