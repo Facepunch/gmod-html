@@ -7,6 +7,10 @@
 #include "include/cef_parser.h"
 #include "cef_end.h"
 
+#ifdef _WIN32
+	#include <shellapi.h>
+#endif
+
 static bool CefValueToJSValue( JSValue& outValue, CefRefPtr<CefValue> inValue, int depth = 0 )
 {
 	if ( depth > 16 )
@@ -222,10 +226,10 @@ static int GetModifiers( const IHtmlClient::EventModifiers modifiers )
 ChromiumBrowser::ChromiumBrowser()
 	: m_Wide( 512 )
 	, m_Tall( 512 )
-	, m_PopupWide( 0 )
-	, m_PopupTall( 0 )
 	, m_PopupX( 0 )
 	, m_PopupY( 0 )
+	, m_PopupWide( 0 )
+	, m_PopupTall( 0 )
 	, m_PopupData( nullptr )
 	, m_OpenLinksExternally( false )
 {}
@@ -283,7 +287,7 @@ void ChromiumBrowser::SendKeyEvent( IHtmlClient::KeyEvent keyEvent )
 			chromiumKeyEvent.type = KEYEVENT_CHAR;
 			chromiumKeyEvent.character = static_cast<char16>( keyEvent.key_char );
 			chromiumKeyEvent.unmodified_character = static_cast<char16>( keyEvent.key_char );
-#ifdef OSX
+#ifdef __APPLE__
 			chromiumKeyEvent.windows_key_code = 0;
 #else
 			chromiumKeyEvent.windows_key_code = keyEvent.windows_key_code;
@@ -786,7 +790,7 @@ bool ChromiumBrowser::OnBeforeBrowse( CefRefPtr<CefBrowser>,
 	if ( m_OpenLinksExternally )
 	{
 #if defined( _WIN32 )
-		ShellExecute( NULL, "open", request->GetURL().ToString().c_str(), NULL, NULL, SW_SHOWNORMAL );
+		ShellExecuteA( NULL, "open", request->GetURL().ToString().c_str(), NULL, NULL, SW_SHOWNORMAL );
 #elif defined( __linux__ )
 		std::string strUrl = request->GetURL().ToString();
 		pid_t pid;
