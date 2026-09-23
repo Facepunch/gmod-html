@@ -1,3 +1,4 @@
+set(TARGET example_host)
 set(SOURCES
 	Main.cpp
 	Window.cpp
@@ -9,36 +10,14 @@ set(SOURCES
 	HtmlPanel.cpp
 	HtmlPanel.h)
 
-if(WIN32)
-	set(SOURCES
-		${SOURCES}
-		../html_chromium/chromium_process/ChromiumApp.cpp
-		../html_chromium/chromium_process/ChromiumApp.h
-		../html_chromium/chromium_process/Windows.cpp)
-endif()
+add_executable(${TARGET} ${SOURCES})
+SET_EXECUTABLE_TARGET_PROPERTIES(${TARGET})
 
-# Lame
-include_directories(${CEF_PATH})
+add_dependencies(${TARGET} html_chromium html chromium_process glfw glad imgui)
+target_compile_definitions(${TARGET} PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLAD)
+target_link_libraries(${TARGET} glfw glad imgui html)
 
-add_executable(example_host WIN32 ${SOURCES})
-target_link_libraries(example_host glfw glad imgui html libcef_imp libcef_dll_wrapper)
-target_link_libraries(example_host optimized cef_sandbox)
-
-if(WIN32)
-	target_link_libraries(example_host
-		shlwapi
-		winmm
-		wsock32
-		comctl32
-		rpcrt4
-		version
-		DbgHelp
-		Psapi
-		wbemuuid
-		OleAut32
-		SetupAPI
-		Propsys
-		Cfgmgr32
-		PowrProf
-		Delayimp.lib)
+if(OS_LINUX)
+	set_target_properties(${TARGET} PROPERTIES INSTALL_RPATH "$ORIGIN")
+	set_target_properties(${TARGET} PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
 endif()

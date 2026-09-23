@@ -11,7 +11,7 @@ class ChromiumBrowser;
 //
 // This class just handles threaded communication to/from the ChromiumBrowser instance
 //
-class ChromiumClient
+class ChromiumClient final
 	: public IHtmlClient
 {
 public:

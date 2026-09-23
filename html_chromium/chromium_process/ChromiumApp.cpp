@@ -177,11 +177,11 @@ void ChromiumApp::OnBeforeCommandLineProcessing( const CefString& process_type, 
 	command_line->AppendSwitch( "enable-system-flash" );
 
 	// This can interfere with posix signals and break Breakpad
-#ifdef POSIX
+#if defined( __APPLE__ ) || defined( __linux__ )
 	command_line->AppendSwitch( "disable-in-process-stack-traces" );
 #endif
 
-#ifdef OSX
+#ifdef __APPLE__
 		command_line->AppendSwitch( "use-mock-keychain" );
 #endif
 
