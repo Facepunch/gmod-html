@@ -85,12 +85,16 @@ void ResourceHandler::GetResponseHeaders( CefRefPtr<CefResponse> response, cef_i
 	CefString mimeType = "text/html";
 
 	auto ext = GetFileExtension( m_Path );
-	if ( ext == "png" ) mimeType = "image/png";
+	if ( ext == "png" || m_Host == "mapimage" ) mimeType = "image/png";
 	else if ( ext == "jpg" ) mimeType = "image/jpg";
 	else if ( ext == "jpeg" ) mimeType = "image/jpg";
 	else if ( ext == "css" ) mimeType = "text/css";
 	else if ( ext == "js" ) mimeType = "text/javascript";
+	// Helpers for the community
 	else if ( ext == "svg" ) mimeType = "image/svg+xml";
+	else if ( ext == "gif" ) mimeType = "image/gif";
+	else if ( ext == "webm" ) mimeType = "video/webm";
+	else if ( ext == "mp4" ) mimeType = "video/mp4";
 
 	response->SetStatus( 200 );
 	response->SetMimeType( mimeType );
@@ -100,6 +104,7 @@ void ResourceHandler::GetResponseHeaders( CefRefPtr<CefResponse> response, cef_i
 bool ResourceHandler::ReadResponse( void* data_out, int bytes_to_read, int& bytes_read, CefRefPtr<CefCallback> callback )
 {
 	bytes_to_read = std::min<cef_uint64>( bytes_to_read, m_BufferLength - ( m_BufferPtr - m_Buffer ) );
+	bytes_to_read = std::max<cef_uint64>( bytes_to_read, 0 );
 
 	memcpy( data_out, m_BufferPtr, bytes_to_read );
 	bytes_read = bytes_to_read;

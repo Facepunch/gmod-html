@@ -693,16 +693,32 @@ void ChromiumBrowser::OnPopupSize( CefRefPtr<CefBrowser>, const CefRect& rect )
 
 void ChromiumBrowser::OnPaint( CefRefPtr<CefBrowser>, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, const void* buffer, int width, int height )
 {
+	// Sanity
+	if ( width <= 0 || height <= 0 ) return;
+
 	//
 	// We blit the popup straight on to the main image. That means gmod won't need to use multiple textures (+1)
 	//
 	switch ( type )
 	{
 		case PET_POPUP:
+			if ( m_PopupData )
+			{
+				delete[] m_PopupData;
+				m_PopupData = nullptr;
+			}
+
+			m_PopupData = new unsigned char[width * height * 4];
+			if ( !m_PopupData )
+			{
+				m_PopupWide = 0;
+				m_PopupTall = 0;
+				return;
+			}
+
+			memcpy( m_PopupData, buffer, width * height * 4 );
 			m_PopupWide = width;
 			m_PopupTall = height;
-			m_PopupData = new unsigned char[width * height * 4];
-			memcpy( m_PopupData, buffer, width * height * 4 );
 
 			// Re-draw the view with our popup
 			m_BrowserHost->Invalidate( PET_VIEW );
@@ -713,15 +729,12 @@ void ChromiumBrowser::OnPaint( CefRefPtr<CefBrowser>, CefRenderHandler::PaintEle
 			m_ImageData.SetData( static_cast<const unsigned char*>( buffer ), width, height );
 
 			// Blit our popup over this image
-			if ( m_PopupWide > 0 && m_PopupTall > 0 )
+			if (	m_PopupWide > 0 && m_PopupTall > 0 &&
+					m_PopupX < width && m_PopupY < height &&
+					( m_PopupX + m_PopupWide ) > 0 && ( m_PopupY + m_PopupTall ) > 0
+				)
 			{
-				// Copy row-by-row because the destination pixels may not be contiguous
-				for ( int SrcY = 0; SrcY < m_PopupTall; SrcY++ )
-				{
-					memcpy( &m_ImageData.m_Data[( SrcY + m_PopupY ) * width * 4 + m_PopupX * 4],
-						&m_PopupData[SrcY * m_PopupWide * 4],
-						m_PopupWide * 4 );
-				}
+				m_ImageData.CopyImage( m_PopupData, m_PopupX, m_PopupY, m_PopupWide, m_PopupTall );
 			}
 
 			m_ImageData.SetDirty( true );

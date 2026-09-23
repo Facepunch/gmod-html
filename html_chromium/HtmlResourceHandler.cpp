@@ -50,6 +50,7 @@ bool HtmlResourceHandler::ReadResponse( void* data_out, int bytes_to_read, int& 
 		return false;
 
 	bytes_to_read = std::min<cef_uint64>( bytes_to_read, m_Html.size() - m_Current );
+	bytes_to_read = std::max<cef_uint64>( bytes_to_read, 0 );
 
 	memcpy( data_out, m_Html.data() + m_Current, bytes_to_read );
 	bytes_read = bytes_to_read;

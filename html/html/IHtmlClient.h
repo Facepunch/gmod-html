@@ -37,8 +37,8 @@ public:
 
 		union
 		{
-			unsigned short key_char; // Type::KeyChar
-			int windows_key_code;    // Type::KeyDown / Type::KeyUp;
+			unsigned short key_char;	// Type::KeyChar
+			int windows_key_code;		// Type::KeyDown / Type::KeyUp;
 		};
 
 		int native_key_code;

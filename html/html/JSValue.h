@@ -284,10 +284,10 @@ private:
 
 	union
 	{
-		bool      _bool;        // Type::Bool
-		double    _number;      // Type::Number
-		IArray* _pArray;      // Type::Array
-		IString* _pString;     // Type::String
-		IHashMap* _pHashMap;    // Type::HashMap
+		bool		_bool;		// Type::Bool
+		double		_number;	// Type::Number
+		IArray*		_pArray;	// Type::Array
+		IString*	_pString;	// Type::String
+		IHashMap*	_pHashMap;	// Type::HashMap
 	};
 };
